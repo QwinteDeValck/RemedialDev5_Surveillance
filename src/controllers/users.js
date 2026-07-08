@@ -49,4 +49,10 @@ async function getUsers() {
   return result.rows;
 }
 
-module.exports = { createUser, getUsers };
+function verifyPassword(password, stored) {
+  const [salt, hash] = stored.split(':');
+  const verify = crypto.scryptSync(password, salt, 64).toString('hex');
+  return hash === verify;
+}
+
+module.exports = { createUser, getUsers, hashPassword, verifyPassword };
