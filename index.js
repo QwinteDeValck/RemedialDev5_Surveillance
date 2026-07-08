@@ -6,6 +6,7 @@ const usersRouter = require('./src/routes/users');
 const app = express();
 const port = process.env.PORT || 80;
 
+app.use(express.static('public'));
 app.use(express.json());
 
 app.get('/health', async (req, res) => {
