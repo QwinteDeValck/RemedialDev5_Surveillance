@@ -1,9 +1,12 @@
 const express = require('express');
 const db = require('./src/db');
 const database = require('./src/database');
+const usersRouter = require('./src/routes/users');
 
 const app = express();
 const port = process.env.PORT || 80;
+
+app.use(express.json());
 
 app.get('/health', async (req, res) => {
   const database = await db.healthCheck();
@@ -12,6 +15,8 @@ app.get('/health', async (req, res) => {
     database: database ? 'connected' : 'disconnected',
   });
 });
+
+app.use('/api/users', usersRouter);
 
 async function start() {
   try {
