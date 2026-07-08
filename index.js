@@ -1,5 +1,6 @@
 const express = require('express');
 const db = require('./src/db');
+const database = require('./src/database');
 
 const app = express();
 const port = process.env.PORT || 80;
@@ -16,6 +17,7 @@ async function start() {
   try {
     await db.connect();
     console.log('Database connected');
+    await database.init();
   } catch (err) {
     console.error('Database connection failed:', err.message || err);
   }
