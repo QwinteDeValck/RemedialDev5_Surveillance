@@ -28,8 +28,9 @@ form.addEventListener('submit', async (e) => {
     const data = await res.json();
 
     if (res.ok) {
-      feedback.className = 'feedback success';
-      feedback.textContent = 'Login successful!';
+      localStorage.setItem('token', data.token);
+      localStorage.setItem('user', JSON.stringify(data.user));
+      window.location.href = '/';
     } else {
       feedback.className = 'feedback error';
       feedback.textContent = data.error || 'Login failed.';

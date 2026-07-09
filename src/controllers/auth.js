@@ -1,5 +1,6 @@
 const db = require('../db');
 const { verifyPassword } = require('./users');
+const { signToken } = require('../middleware/auth');
 
 async function login({ email, password }) {
   if (!email || !password) {
@@ -21,11 +22,16 @@ async function login({ email, password }) {
     return { error: 'Invalid email or password.' };
   }
 
+  const token = signToken(user);
+
   return {
-    id: user.id,
-    username: user.username,
-    email: user.email,
-    role_id: user.role_id,
+    token,
+    user: {
+      id: user.id,
+      username: user.username,
+      email: user.email,
+      role_id: user.role_id,
+    },
   };
 }
 
