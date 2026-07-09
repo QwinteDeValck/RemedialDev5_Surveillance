@@ -3,6 +3,7 @@ const db = require('./src/db');
 const database = require('./src/database');
 const usersRouter = require('./src/routes/users');
 const authRouter = require('./src/routes/auth');
+const observationsRouter = require('./src/routes/observations');
 
 const app = express();
 const port = process.env.PORT || 80;
@@ -23,6 +24,7 @@ app.get('/health', async (req, res) => {
 
 app.use('/api/users', usersRouter);
 app.use('/api/auth', authRouter);
+app.use('/api/observations', observationsRouter);
 
 async function start() {
   try {
