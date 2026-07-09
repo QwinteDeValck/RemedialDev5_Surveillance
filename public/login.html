@@ -21,17 +21,19 @@
     <div class="form-card">
       <h2>Log In</h2>
 
-      <div class="form-group">
-        <label for="email">Email</label>
-        <input type="email" id="email" name="email" required>
-      </div>
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required>
+        </div>
 
-      <div class="form-group">
-        <label for="password">Password</label>
-        <input type="password" id="password" name="password" required>
-      </div>
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required>
+        </div>
 
-      <button class="btn btn-cta btn-full" onclick="login()">Log In</button>
+        <button id="submitBtn" type="submit" class="btn btn-cta btn-full">Log In</button>
+      </form>
 
       <div id="feedback" class="feedback"></div>
 
