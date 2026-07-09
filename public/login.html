@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Login — Neighborhood Surveillance</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/form.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/" class="navbar-brand">Neighborhood Surveillance</a>
+    <div class="navbar-links" id="navLinks">
+      <a href="/">Home</a>
+      <a href="/register">Register</a>
+      <a href="/login">Login</a>
+    </div>
+  </nav>
+
+  <div class="form-page">
+    <div class="form-card">
+      <h2>Log In</h2>
+
+      <form id="loginForm">
+        <div class="form-group">
+          <label for="email">Email</label>
+          <input type="email" id="email" name="email" required>
+        </div>
+
+        <div class="form-group">
+          <label for="password">Password</label>
+          <input type="password" id="password" name="password" required>
+        </div>
+
+        <button id="submitBtn" type="submit" class="btn btn-cta btn-full">Log In</button>
+      </form>
+
+      <div id="feedback" class="feedback"></div>
+
+      <div class="form-footer">
+        Don't have an account? <a href="/register">Register</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/login.js"></script>
+</body>
+</html>
