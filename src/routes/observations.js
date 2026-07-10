@@ -4,6 +4,19 @@ const { authenticate } = require('../middleware/auth');
 
 const router = Router();
 
+router.get('/', authenticate, async (req, res) => {
+  const observations = await observationsController.getAll(req.user.id);
+  res.json(observations);
+});
+
+router.get('/:id', authenticate, async (req, res) => {
+  const result = await observationsController.getById(req.params.id, req.user.id);
+  if (result.error) {
+    return res.status(result.status || 400).json({ error: result.error });
+  }
+  res.json(result);
+});
+
 router.post('/', authenticate, async (req, res) => {
   const result = await observationsController.create(req.body, req.user.id);
   if (result.error) {

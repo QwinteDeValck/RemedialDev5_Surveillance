@@ -42,4 +42,31 @@ async function create(data, userId) {
   return result.rows[0];
 }
 
-module.exports = { create };
+async function getAll(userId) {
+  const result = await db.pool.query(
+    'SELECT * FROM observations WHERE created_by = $1 ORDER BY created_at DESC',
+    [userId]
+  );
+  return result.rows;
+}
+
+async function getById(id, userId) {
+  const result = await db.pool.query(
+    'SELECT * FROM observations WHERE id = $1',
+    [id]
+  );
+
+  if (result.rows.length === 0) {
+    return { error: 'Observation not found.', status: 404 };
+  }
+
+  const observation = result.rows[0];
+
+  if (!observation.is_public && observation.created_by !== userId) {
+    return { error: 'Forbidden.', status: 403 };
+  }
+
+  return observation;
+}
+
+module.exports = { create, getAll, getById };
