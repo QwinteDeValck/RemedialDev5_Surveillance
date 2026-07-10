@@ -14,7 +14,7 @@ function isLoggedIn() {
 function logout() {
   localStorage.removeItem('token');
   localStorage.removeItem('user');
-  window.location.href = '/login';
+  window.location.href = '/auth/login.html';
 }
 
 function updateNavbar() {
@@ -30,8 +30,8 @@ function updateNavbar() {
   } else {
     navLinks.innerHTML = `
       <a href="/">Home</a>
-      <a href="/register">Register</a>
-      <a href="/login">Login</a>
+      <a href="/auth/register.html">Register</a>
+      <a href="/auth/login.html">Login</a>
     `;
   }
 }

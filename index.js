@@ -11,8 +11,8 @@ const port = process.env.PORT || 80;
 app.use(express.static('public'));
 app.use(express.json());
 
-app.get('/register', (req, res) => res.sendFile('register.html', { root: 'public' }));
-app.get('/login', (req, res) => res.sendFile('login.html', { root: 'public' }));
+app.get('/register', (req, res) => res.sendFile('auth/register.html', { root: 'public' }));
+app.get('/login', (req, res) => res.sendFile('auth/login.html', { root: 'public' }));
 
 app.get('/health', async (req, res) => {
   const database = await db.healthCheck();
