@@ -125,4 +125,25 @@ async function update(id, userId, data) {
   return result.rows[0];
 }
 
-module.exports = { create, getAll, getById, update };
+async function remove(id, userId) {
+  const existing = await db.pool.query('SELECT * FROM observations WHERE id = $1', [id]);
+
+  if (existing.rows.length === 0) {
+    return { error: 'Observation not found.', status: 404 };
+  }
+
+  const observation = existing.rows[0];
+
+  if (observation.created_by !== userId) {
+    return { error: 'Forbidden.', status: 403 };
+  }
+
+  if (observation.is_public) {
+    return { error: 'Cannot delete a public observation.', status: 403 };
+  }
+
+  await db.pool.query('DELETE FROM observations WHERE id = $1', [id]);
+  return { message: 'Observation deleted.' };
+}
+
+module.exports = { create, getAll, getById, update, remove };
