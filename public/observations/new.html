@@ -1,0 +1,70 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>New Observation — Neighborhood Surveillance</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <link rel="stylesheet" href="/css/form.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/" class="navbar-brand">Neighborhood Surveillance</a>
+    <div class="navbar-links" id="navLinks"></div>
+  </nav>
+
+  <div class="form-page">
+    <div class="form-card">
+      <h2>New Observation</h2>
+
+      <form id="observationForm">
+        <div class="form-group">
+          <label for="title">Title</label>
+          <input type="text" id="title" name="title" required>
+        </div>
+
+        <div class="form-group">
+          <label for="category">Category</label>
+          <select id="category" name="category" required>
+            <option value="">— Select a category —</option>
+            <option value="suspicious">Suspicious</option>
+            <option value="vehicle">Vehicle</option>
+            <option value="noise">Noise</option>
+            <option value="property">Property damage</option>
+            <option value="person">Person</option>
+            <option value="other">Other</option>
+          </select>
+        </div>
+
+        <div class="form-group">
+          <label for="description">Description</label>
+          <textarea id="description" name="description" rows="4"></textarea>
+        </div>
+
+        <div class="form-group">
+          <label for="address">Address</label>
+          <input type="text" id="address" name="address" required>
+        </div>
+
+        <div class="form-group">
+          <label class="checkbox-label">
+            Make this observation public
+            <input type="checkbox" id="is_public" name="is_public">
+          </label>
+        </div>
+
+        <button id="submitBtn" type="submit" class="btn btn-cta btn-full">Submit Observation</button>
+      </form>
+
+      <div id="feedback" class="feedback"></div>
+
+      <div class="form-footer">
+        <a href="/">Back to Home</a>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/observations.js"></script>
+</body>
+</html>
