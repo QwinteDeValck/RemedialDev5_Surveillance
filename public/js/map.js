@@ -1,10 +1,22 @@
 (function () {
   const mapElement = document.getElementById('map');
+  const overlay = document.getElementById('mapOverlay');
 
   if (!mapElement) return;
 
+  function showOverlay(html) {
+    if (overlay) {
+      overlay.innerHTML = `<div class="map-overlay-content">${html}</div>`;
+      overlay.classList.remove('hidden');
+    }
+  }
+
+  function hideOverlay() {
+    if (overlay) overlay.classList.add('hidden');
+  }
+
   if (typeof L === 'undefined') {
-    mapElement.innerHTML = '<div class="map-error"><h2>Map failed to load</h2><p>The map library could not be loaded. Please try again later.</p></div>';
+    showOverlay('<h2>Map failed to load</h2><p>The map library could not be loaded. Please try again later.</p>');
     return;
   }
 
@@ -28,14 +40,20 @@
 
   async function loadMarkers() {
     const token = getToken();
-    if (!token) return;
+    if (!token) {
+      showOverlay('<h2>Login required</h2><p><a href="/auth/login.html" style="color:#D32F2F;">Log in</a> to view the map.</p>');
+      return;
+    }
 
     try {
       const res = await fetch('/api/observations/public', {
         headers: { Authorization: `Bearer ${token}` },
       });
 
-      if (!res.ok) return;
+      if (!res.ok) {
+        showOverlay('<h2>Failed to load observations</h2><p>The server returned an error. Please try again later.</p>');
+        return;
+      }
 
       const observations = await res.json();
       let added = 0;
@@ -58,10 +76,12 @@
       });
 
       if (added === 0) {
-        mapElement.innerHTML = '<div class="map-error"><h2>No observations</h2><p>No public observations available in this area.</p></div>';
+        showOverlay('<h2>No observations</h2><p>No public observations available in this area.</p>');
+      } else {
+        hideOverlay();
       }
     } catch {
-      mapElement.innerHTML = '<div class="map-error"><h2>Failed to load observations</h2><p>Could not fetch observation data. Please try again later.</p></div>';
+      showOverlay('<h2>Connection error</h2><p>Could not connect to the server. Please check your connection and try again.</p>');
     }
   }
 
