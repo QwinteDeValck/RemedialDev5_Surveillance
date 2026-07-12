@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Observation Detail — Neighborhood Surveillance</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/" class="navbar-brand">Neighborhood Surveillance</a>
+    <div class="navbar-links" id="navLinks"></div>
+  </nav>
+
+  <div class="container">
+    <div id="feedback" class="feedback"></div>
+    <div id="loading" style="text-align:center;padding:3rem;color:#666">Loading...</div>
+
+    <div id="detailCard" style="display:none;background:#fff;border-radius:8px;padding:2rem;box-shadow:0 1px 3px rgba(0,0,0,0.1);max-width:700px;margin:2rem auto">
+      <div style="display:flex;justify-content:space-between;align-items:start;margin-bottom:1.5rem">
+        <h2 id="detailTitle" style="margin:0"></h2>
+        <span id="detailVisibility" style="font-size:0.8rem;padding:0.25rem 0.75rem;border-radius:12px;font-weight:600"></span>
+      </div>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:1rem;margin-bottom:1.5rem">
+        <div><strong>Category:</strong> <span id="detailCategory"></span></div>
+        <div><strong>Status:</strong> <span id="detailStatus"></span></div>
+        <div><strong>Address:</strong> <span id="detailAddress"></span></div>
+        <div><strong>Created:</strong> <span id="detailCreated"></span></div>
+      </div>
+
+      <div style="margin-bottom:1.5rem">
+        <strong>Description:</strong>
+        <p id="detailDescription" style="margin-top:0.5rem;color:#444;line-height:1.5;white-space:pre-wrap"></p>
+      </div>
+
+      <div id="detailActions" style="display:flex;gap:0.75rem;flex-wrap:wrap;border-top:1px solid #eee;padding-top:1.5rem"></div>
+
+      <div id="requestForm" style="display:none;margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid #eee">
+        <h3 style="margin-bottom:1.25rem">Request Change</h3>
+        <div class="form-group" style="margin-bottom:1.25rem">
+          <select id="requestType" style="width:100%;padding:0.625rem 0.75rem;border:1px solid #D0D0D0;border-radius:4px;font-size:0.9rem;font-family:inherit">
+            <option value="EDIT">Edit</option>
+            <option value="DELETE">Delete</option>
+          </select>
+        </div>
+        <div class="form-group" style="margin-bottom:1.25rem">
+          <textarea id="requestReason" rows="3" style="width:100%;padding:0.625rem 0.75rem;border:1px solid #D0D0D0;border-radius:4px;font-size:0.9rem;font-family:inherit;resize:vertical" placeholder="Reason for request..."></textarea>
+        </div>
+        <button id="submitRequestBtn" class="btn btn-cta" onclick="submitRequest()" style="margin-top:0.5rem">Submit Request</button>
+      </div>
+    </div>
+
+    <div style="text-align:center;margin-top:1rem">
+      <a href="/observations/" style="color:#1E1E1E;font-weight:600">&larr; Back to overview</a>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/observations-detail.js"></script>
+</body>
+</html>

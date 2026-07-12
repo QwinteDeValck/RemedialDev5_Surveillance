@@ -34,4 +34,14 @@ async function createRequest(observationId, userId, data) {
   return result.rows[0];
 }
 
-module.exports = { createRequest };
+async function getRequestsForObservation(observationId, userId) {
+  const result = await db.pool.query(
+    `SELECT * FROM observation_requests
+     WHERE observation_id = $1 AND requested_by = $2
+     ORDER BY created_at DESC`,
+    [observationId, userId]
+  );
+  return result.rows;
+}
+
+module.exports = { createRequest, getRequestsForObservation };
