@@ -48,6 +48,16 @@ async function create(data, userId) {
   return result.rows[0];
 }
 
+async function getPublic() {
+  const result = await db.pool.query(
+    `SELECT id, title, description, category, latitude, longitude, created_at
+     FROM observations
+     WHERE is_public = true
+     ORDER BY created_at DESC`
+  );
+  return result.rows;
+}
+
 async function getAll(userId) {
   const result = await db.pool.query(
     'SELECT * FROM observations WHERE created_by = $1 ORDER BY created_at DESC',
@@ -152,4 +162,4 @@ async function remove(id, userId) {
   return { message: 'Observation deleted.' };
 }
 
-module.exports = { create, getAll, getById, update, remove };
+module.exports = { create, getPublic, getAll, getById, update, remove };

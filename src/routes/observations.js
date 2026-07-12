@@ -4,6 +4,11 @@ const { authenticate } = require('../middleware/auth');
 
 const router = Router();
 
+router.get('/public', authenticate, async (req, res) => {
+  const observations = await observationsController.getPublic();
+  res.json(observations);
+});
+
 router.get('/', authenticate, async (req, res) => {
   const observations = await observationsController.getAll(req.user.id);
   res.json(observations);
