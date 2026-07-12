@@ -24,6 +24,7 @@ function updateNavbar() {
   if (isLoggedIn()) {
     const user = getUser();
     navLinks.innerHTML = `
+      <a href="/observations/" style="color:#fff;text-decoration:none;font-size:0.9rem;opacity:0.8">Observations</a>
       <span style="color:#fff;opacity:0.8;font-size:0.9rem">${user.username}</span>
       <a href="#" class="logout-link" onclick="logout(); return false;">Logout</a>
     `;
