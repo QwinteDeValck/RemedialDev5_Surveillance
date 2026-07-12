@@ -1,4 +1,5 @@
 const db = require('../db');
+const { geocode } = require('../services/geocoding');
 
 function validate({ title, category, address, is_public }) {
   const errors = [];
@@ -23,6 +24,11 @@ async function create(data, userId) {
     return { error: errors.join(' ') };
   }
 
+  const coords = await geocode(data.address);
+  if (coords.error) {
+    return { error: coords.error };
+  }
+
   const result = await db.pool.query(
     `INSERT INTO observations (title, category, description, address, latitude, longitude, is_public, created_by)
      VALUES ($1, $2, $3, $4, $5, $6, $7, $8)
@@ -32,14 +38,24 @@ async function create(data, userId) {
       data.category.trim(),
       data.description || null,
       data.address.trim(),
-      data.latitude || null,
-      data.longitude || null,
+      coords.latitude,
+      coords.longitude,
       data.is_public || false,
       userId,
     ]
   );
 
   return result.rows[0];
+}
+
+async function getPublic() {
+  const result = await db.pool.query(
+    `SELECT id, title, description, category, latitude, longitude, created_at
+     FROM observations
+     WHERE is_public = true
+     ORDER BY created_at DESC`
+  );
+  return result.rows;
 }
 
 async function getAll(userId) {
@@ -146,4 +162,4 @@ async function remove(id, userId) {
   return { message: 'Observation deleted.' };
 }
 
-module.exports = { create, getAll, getById, update, remove };
+module.exports = { create, getPublic, getAll, getById, update, remove };
