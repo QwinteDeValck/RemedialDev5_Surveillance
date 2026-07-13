@@ -83,6 +83,7 @@
 
   function renderMode(observations) {
     clearAllLayers();
+    renderSidebar(observations);
 
     const filtered = observations.filter((obs) => {
       const lat = parseFloat(obs.latitude);
@@ -132,6 +133,65 @@
       date: dateSelect ? dateSelect.value : 'all',
     };
     return filterObservations(allObservations, filters);
+  }
+
+  function renderSidebar(observations) {
+    const listEl = document.getElementById('sidebarList');
+    const countEl = document.getElementById('sidebarCount');
+    if (!listEl) return;
+
+    countEl.textContent = observations.length;
+
+    if (observations.length === 0) {
+      listEl.innerHTML = '<div class="sidebar-empty">No observations match the current filters.</div>';
+      return;
+    }
+
+    listEl.innerHTML = observations.map((obs) => {
+      const date = new Date(obs.created_at).toLocaleString();
+      const desc = obs.description
+        ? obs.description.length > 80
+          ? obs.description.substring(0, 80) + '…'
+          : obs.description
+        : '';
+      return `
+        <div class="sidebar-item" data-id="${obs.id}">
+          <div class="item-title">${obs.title}</div>
+          <div class="item-meta">
+            <span class="item-category">${obs.category}</span>
+            <span>${date}</span>
+          </div>
+          ${desc ? `<div class="item-desc">${desc}</div>` : ''}
+        </div>
+      `;
+    }).join('');
+
+    listEl.querySelectorAll('.sidebar-item').forEach((el) => {
+      el.addEventListener('click', () => {
+        listEl.querySelectorAll('.sidebar-item').forEach((i) => i.classList.remove('active'));
+        el.classList.add('active');
+      });
+    });
+  }
+
+  function setupSidebarToggle() {
+    const hamburger = document.getElementById('hamburgerBtn');
+    const closeBtn = document.getElementById('closeSidebarBtn');
+    const sidebar = document.getElementById('sidebar');
+    if (!hamburger || !closeBtn || !sidebar) return;
+
+    function openSidebar() {
+      sidebar.classList.add('open');
+      hamburger.classList.add('hidden');
+    }
+
+    function closeSidebar() {
+      sidebar.classList.remove('open');
+      hamburger.classList.remove('hidden');
+    }
+
+    hamburger.addEventListener('click', openSidebar);
+    closeBtn.addEventListener('click', closeSidebar);
   }
 
   function setupModeSwitcher() {
@@ -189,6 +249,7 @@
         return;
       }
 
+      setupSidebarToggle();
       setupFilters();
       setupModeSwitcher();
       renderMode(allObservations);
