@@ -7,6 +7,7 @@
   let heatLayer;
   let map;
   let currentMode = 'clusters';
+  let markerMap = {};
 
   if (!mapElement) return;
 
@@ -59,6 +60,30 @@
     markers = [];
     if (heatLayer) map.removeLayer(heatLayer);
     heatLayer = null;
+    markerMap = {};
+  }
+
+  function highlightSidebarItem(obsId) {
+    const listEl = document.getElementById('sidebarList');
+    if (!listEl) return;
+    listEl.querySelectorAll('.sidebar-item').forEach((el) => el.classList.remove('active'));
+    const target = listEl.querySelector(`.sidebar-item[data-id="${obsId}"]`);
+    if (target) {
+      target.classList.add('active');
+      target.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+    }
+  }
+
+  function focusMarkerOnMap(obsId) {
+    const marker = markerMap[obsId];
+    if (!marker) return;
+    const latlng = marker.getLatLng();
+    if (currentMode === 'clusters') {
+      clusterGroup.zoomToShowLayer(marker, () => marker.openPopup());
+    } else if (currentMode === 'markers') {
+      map.setView(latlng, 14);
+      marker.openPopup();
+    }
   }
 
   function createIndividualMarkers(observations) {
@@ -76,6 +101,10 @@
           <em>${obs.category}</em><br>
           ${date}
         `);
+
+      marker.on('click', () => highlightSidebarItem(obs.id));
+
+      markerMap[obs.id] = marker;
       result.push(marker);
     });
     return result;
@@ -170,6 +199,9 @@
       el.addEventListener('click', () => {
         listEl.querySelectorAll('.sidebar-item').forEach((i) => i.classList.remove('active'));
         el.classList.add('active');
+        if (currentMode !== 'heatmap') {
+          focusMarkerOnMap(el.dataset.id);
+        }
       });
     });
   }
