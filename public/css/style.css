@@ -154,3 +154,27 @@ body {
   background: #fff;
   min-width: 160px;
 }
+
+.mode-btn {
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 600;
+  border: none;
+  background: #fff;
+  color: #666;
+  cursor: pointer;
+  transition: background 0.2s, color 0.2s;
+}
+
+.mode-btn:not(:last-child) {
+  border-right: 1px solid #e0e0e0;
+}
+
+.mode-btn:hover {
+  background: #f0f0f0;
+}
+
+.mode-btn.active {
+  background: #1E1E1E;
+  color: #fff;
+}

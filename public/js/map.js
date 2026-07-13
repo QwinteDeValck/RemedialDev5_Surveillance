@@ -6,6 +6,7 @@
   let clusterGroup;
   let heatLayer;
   let map;
+  let currentMode = 'clusters';
 
   if (!mapElement) return;
 
@@ -52,14 +53,16 @@
     popupAnchor: [1, -34],
   });
 
-  function clearMarkers() {
+  function clearAllLayers() {
     clusterGroup.clearLayers();
+    markers.forEach((m) => map.removeLayer(m));
     markers = [];
+    if (heatLayer) map.removeLayer(heatLayer);
+    heatLayer = null;
   }
 
-  function renderMarkers(observations) {
-    clearMarkers();
-
+  function createIndividualMarkers(observations) {
+    const result = [];
     observations.forEach((obs) => {
       const lat = parseFloat(obs.latitude);
       const lng = parseFloat(obs.longitude);
@@ -73,35 +76,72 @@
           <em>${obs.category}</em><br>
           ${date}
         `);
-      clusterGroup.addLayer(marker);
-      markers.push(marker);
+      result.push(marker);
+    });
+    return result;
+  }
+
+  function renderMode(observations) {
+    clearAllLayers();
+
+    const filtered = observations.filter((obs) => {
+      const lat = parseFloat(obs.latitude);
+      const lng = parseFloat(obs.longitude);
+      return lat && lng;
     });
 
-    if (markers.length === 0 && allObservations.length > 0) {
+    if (filtered.length === 0 && allObservations.length > 0) {
       showOverlay('<h2>No observations</h2><p>No observations match the current filters.</p>');
-    } else if (markers.length > 0) {
-      hideOverlay();
+      return;
+    }
+
+    hideOverlay();
+
+    if (currentMode === 'heatmap') {
+      const points = filtered.map((obs) => [parseFloat(obs.latitude), parseFloat(obs.longitude), 0.8]);
+      heatLayer = L.heatLayer(points, { radius: 25, blur: 15, maxZoom: 17 }).addTo(map);
+      return;
+    }
+
+    const individual = createIndividualMarkers(filtered);
+
+    if (currentMode === 'markers') {
+      individual.forEach((m) => {
+        m.addTo(map);
+        markers.push(m);
+      });
+    } else {
+      individual.forEach((m) => {
+        clusterGroup.addLayer(m);
+        markers.push(m);
+      });
     }
   }
 
-  function renderHeatmap(observations) {
-    if (heatLayer) map.removeLayer(heatLayer);
+  function setMode(mode) {
+    currentMode = mode;
+    const filtered = getFilteredObservations();
+    renderMode(filtered);
+  }
 
-    const points = [];
-    observations.forEach((obs) => {
-      const lat = parseFloat(obs.latitude);
-      const lng = parseFloat(obs.longitude);
-      if (!lat || !lng) return;
-      points.push([lat, lng, 0.8]);
+  function getFilteredObservations() {
+    const catSelect = document.getElementById('filterCategory');
+    const dateSelect = document.getElementById('filterDate');
+    const filters = {
+      category: catSelect ? catSelect.value : 'all',
+      date: dateSelect ? dateSelect.value : 'all',
+    };
+    return filterObservations(allObservations, filters);
+  }
+
+  function setupModeSwitcher() {
+    document.querySelectorAll('.mode-btn').forEach((btn) => {
+      btn.addEventListener('click', () => {
+        document.querySelectorAll('.mode-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        setMode(btn.dataset.mode);
+      });
     });
-
-    if (points.length === 0) return;
-
-    heatLayer = L.heatLayer(points, {
-      radius: 25,
-      blur: 15,
-      maxZoom: 17,
-    }).addTo(map);
   }
 
   function setupFilters() {
@@ -117,13 +157,8 @@
     });
 
     function apply() {
-      const filters = {
-        category: catSelect.value,
-        date: dateSelect.value,
-      };
-      const filtered = filterObservations(allObservations, filters);
-      renderMarkers(filtered);
-      renderHeatmap(filtered);
+      const filtered = getFilteredObservations();
+      renderMode(filtered);
     }
 
     catSelect.addEventListener('change', apply);
@@ -155,8 +190,8 @@
       }
 
       setupFilters();
-      renderMarkers(allObservations);
-      renderHeatmap(allObservations);
+      setupModeSwitcher();
+      renderMode(allObservations);
     } catch {
       showOverlay('<h2>Connection error</h2><p>Could not connect to the server. Please check your connection and try again.</p>');
     }
