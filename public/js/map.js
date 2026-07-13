@@ -3,6 +3,7 @@
   const overlay = document.getElementById('mapOverlay');
   let allObservations = [];
   let markers = [];
+  let clusterGroup;
   let map;
 
   if (!mapElement) return;
@@ -30,6 +31,15 @@
     attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
   }).addTo(map);
 
+  clusterGroup = L.markerClusterGroup({
+    spiderfyOnMaxZoom: false,
+    showCoverageOnHover: false,
+    zoomToBoundsOnClick: true,
+    animate: false,
+    chunkedLoading: true,
+  });
+  map.addLayer(clusterGroup);
+
   const redIcon = L.divIcon({
     className: '',
     html: `<svg width="25" height="41" viewBox="0 0 25 41" fill="none" xmlns="http://www.w3.org/2000/svg">
@@ -42,7 +52,7 @@
   });
 
   function clearMarkers() {
-    markers.forEach((m) => map.removeLayer(m));
+    clusterGroup.clearLayers();
     markers = [];
   }
 
@@ -57,12 +67,12 @@
       const date = new Date(obs.created_at).toLocaleString();
       const desc = obs.description ? `<br>${obs.description}` : '';
       const marker = L.marker([lat, lng], { icon: redIcon })
-        .addTo(map)
         .bindPopup(`
           <strong>${obs.title}</strong>${desc}<br>
           <em>${obs.category}</em><br>
           ${date}
         `);
+      clusterGroup.addLayer(marker);
       markers.push(marker);
     });
 
