@@ -4,6 +4,7 @@
   let allObservations = [];
   let markers = [];
   let clusterGroup;
+  let heatLayer;
   let map;
 
   if (!mapElement) return;
@@ -83,6 +84,26 @@
     }
   }
 
+  function renderHeatmap(observations) {
+    if (heatLayer) map.removeLayer(heatLayer);
+
+    const points = [];
+    observations.forEach((obs) => {
+      const lat = parseFloat(obs.latitude);
+      const lng = parseFloat(obs.longitude);
+      if (!lat || !lng) return;
+      points.push([lat, lng, 0.8]);
+    });
+
+    if (points.length === 0) return;
+
+    heatLayer = L.heatLayer(points, {
+      radius: 25,
+      blur: 15,
+      maxZoom: 17,
+    }).addTo(map);
+  }
+
   function setupFilters() {
     const catSelect = document.getElementById('filterCategory');
     const dateSelect = document.getElementById('filterDate');
@@ -102,6 +123,7 @@
       };
       const filtered = filterObservations(allObservations, filters);
       renderMarkers(filtered);
+      renderHeatmap(filtered);
     }
 
     catSelect.addEventListener('change', apply);
@@ -134,6 +156,7 @@
 
       setupFilters();
       renderMarkers(allObservations);
+      renderHeatmap(allObservations);
     } catch {
       showOverlay('<h2>Connection error</h2><p>Could not connect to the server. Please check your connection and try again.</p>');
     }
