@@ -277,6 +277,23 @@ a.dropdown-item-danger:hover {
   color: #1E1E1E;
 }
 
+.feedback {
+  font-size: 0.85rem;
+  padding: 0.5rem 0.75rem;
+  border-radius: 4px;
+  display: none;
+}
+.feedback.error {
+  display: block;
+  background: #FFEBEE;
+  color: #D32F2F;
+}
+.feedback.success {
+  display: block;
+  background: #E8F5E9;
+  color: #388E3C;
+}
+
 .mode-btn {
   padding: 0.5rem 1rem;
   font-size: 0.8rem;

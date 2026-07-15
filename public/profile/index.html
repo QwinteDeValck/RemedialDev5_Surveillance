@@ -37,6 +37,25 @@
           <p id="profileCreated"></p>
         </div>
       </div>
+
+      <div id="editForm" style="display:none;background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:2rem;max-width:500px;margin:2rem auto 0">
+        <h3 style="margin-bottom:1rem;font-size:1rem">Edit Profile</h3>
+        <div id="editFeedback" class="feedback" style="margin-bottom:0.75rem"></div>
+        <div class="profile-field">
+          <label for="editUsername">Username</label>
+          <input id="editUsername" type="text" style="width:100%;padding:0.5rem 0.75rem;font-size:0.9rem;border:1px solid #d0d0d0;border-radius:4px">
+        </div>
+        <div class="profile-field">
+          <label for="editEmail">Email</label>
+          <input id="editEmail" type="email" style="width:100%;padding:0.5rem 0.75rem;font-size:0.9rem;border:1px solid #d0d0d0;border-radius:4px">
+        </div>
+        <button id="saveBtn" class="btn btn-cta" style="margin-top:0.5rem">Save Changes</button>
+        <div id="editLoading" style="display:none;margin-top:0.75rem;color:#666;font-size:0.85rem">Saving...</div>
+      </div>
+
+      <div style="text-align:center;margin-top:1rem">
+        <button id="toggleEditBtn" class="btn" style="background:#eee;color:#1E1E1E;font-size:0.85rem">Edit Profile</button>
+      </div>
     </div>
     <div id="error" style="display:none;text-align:center;padding:3rem;color:#D32F2F"></div>
   </div>
