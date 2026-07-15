@@ -114,4 +114,86 @@ document.addEventListener('DOMContentLoaded', async () => {
       editLoading.style.display = 'none';
     }
   });
+
+  const togglePwBtn = document.getElementById('togglePwBtn');
+  const passwordForm = document.getElementById('passwordForm');
+  const pwSaveBtn = document.getElementById('pwSaveBtn');
+  const pwLoading = document.getElementById('pwLoading');
+  const pwFeedback = document.getElementById('pwFeedback');
+  let passwordFormVisible = false;
+
+  togglePwBtn.addEventListener('click', () => {
+    passwordFormVisible = !passwordFormVisible;
+    passwordForm.style.display = passwordFormVisible ? 'block' : 'none';
+    togglePwBtn.textContent = passwordFormVisible ? 'Cancel' : 'Change Password';
+    pwFeedback.className = 'feedback';
+    pwFeedback.textContent = '';
+    document.getElementById('pwCurrent').value = '';
+    document.getElementById('pwNew').value = '';
+    document.getElementById('pwConfirm').value = '';
+  });
+
+  pwSaveBtn.addEventListener('click', async () => {
+    const currentPassword = document.getElementById('pwCurrent').value;
+    const newPassword = document.getElementById('pwNew').value;
+    const confirmPassword = document.getElementById('pwConfirm').value;
+
+    if (!currentPassword || !newPassword || !confirmPassword) {
+      pwFeedback.className = 'feedback error';
+      pwFeedback.textContent = 'All fields are required.';
+      return;
+    }
+
+    if (newPassword.length < 6) {
+      pwFeedback.className = 'feedback error';
+      pwFeedback.textContent = 'New password must be at least 6 characters.';
+      return;
+    }
+
+    if (newPassword !== confirmPassword) {
+      pwFeedback.className = 'feedback error';
+      pwFeedback.textContent = 'Passwords do not match.';
+      return;
+    }
+
+    pwSaveBtn.style.display = 'none';
+    pwLoading.style.display = 'block';
+    pwFeedback.className = 'feedback';
+    pwFeedback.textContent = '';
+
+    try {
+      const res = await fetch('/api/profile/password', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify({ currentPassword, newPassword }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        pwFeedback.className = 'feedback error';
+        pwFeedback.textContent = data.error || 'Failed to update password.';
+        pwSaveBtn.style.display = 'block';
+        pwLoading.style.display = 'none';
+        return;
+      }
+
+      pwFeedback.className = 'feedback success';
+      pwFeedback.textContent = 'Password updated successfully.';
+      pwSaveBtn.style.display = 'block';
+      pwLoading.style.display = 'none';
+
+      document.getElementById('pwCurrent').value = '';
+      document.getElementById('pwNew').value = '';
+      document.getElementById('pwConfirm').value = '';
+    } catch {
+      pwFeedback.className = 'feedback error';
+      pwFeedback.textContent = 'Could not connect to server.';
+      pwSaveBtn.style.display = 'block';
+      pwLoading.style.display = 'none';
+    }
+  });
 });

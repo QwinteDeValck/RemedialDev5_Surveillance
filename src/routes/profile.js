@@ -20,4 +20,12 @@ router.put('/', authenticate, async (req, res) => {
   res.json(result);
 });
 
+router.put('/password', authenticate, async (req, res) => {
+  const result = await profileController.updatePassword(req.user.id, req.body);
+  if (result.error) {
+    return res.status(result.status || 400).json({ error: result.error });
+  }
+  res.json(result);
+});
+
 module.exports = router;

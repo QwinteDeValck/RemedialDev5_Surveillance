@@ -1,4 +1,5 @@
 const db = require('../db');
+const { hashPassword, verifyPassword } = require('./users');
 
 async function getProfile(userId) {
   const result = await db.pool.query(
@@ -14,6 +15,39 @@ async function getProfile(userId) {
   }
 
   return result.rows[0];
+}
+
+async function updatePassword(userId, body) {
+  const { currentPassword, newPassword } = body;
+
+  if (!currentPassword || !currentPassword.trim()) {
+    return { error: 'Current password is required.', status: 400 };
+  }
+  if (!newPassword || newPassword.length < 6) {
+    return { error: 'New password must be at least 6 characters.', status: 400 };
+  }
+
+  const user = await db.pool.query(
+    'SELECT password FROM users WHERE id = $1',
+    [userId]
+  );
+
+  if (user.rows.length === 0) {
+    return { error: 'User not found.', status: 404 };
+  }
+
+  if (!verifyPassword(currentPassword, user.rows[0].password)) {
+    return { error: 'Current password is incorrect.', status: 403 };
+  }
+
+  const hashed = hashPassword(newPassword);
+
+  await db.pool.query(
+    'UPDATE users SET password = $1 WHERE id = $2',
+    [hashed, userId]
+  );
+
+  return { message: 'Password updated successfully.' };
 }
 
 async function updateProfile(userId, body) {
@@ -57,4 +91,4 @@ async function updateProfile(userId, body) {
   return result.rows[0];
 }
 
-module.exports = { getProfile, updateProfile };
+module.exports = { getProfile, updateProfile, updatePassword };
