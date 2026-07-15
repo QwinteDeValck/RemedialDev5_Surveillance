@@ -1,0 +1,130 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile — Neighborhood Surveillance</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/" class="navbar-brand">Neighborhood Surveillance</a>
+    <div class="navbar-links" id="navLinks"></div>
+  </nav>
+
+  <div class="container">
+    <h2 style="margin-bottom:2rem">Profile</h2>
+    <div id="loading" style="text-align:center;padding:3rem;color:#666">Loading...</div>
+    <div id="profileContent" style="display:none">
+      <div style="background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:2rem;max-width:500px;margin:0 auto">
+        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid #e0e0e0">
+          <div id="profileAvatar" style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.25rem;font-weight:700;flex-shrink:0"></div>
+          <div>
+            <div id="profileUsername" style="font-size:1.125rem;font-weight:600"></div>
+            <div id="profileRole" style="font-size:0.8rem;color:#888;text-transform:capitalize"></div>
+          </div>
+        </div>
+        <div class="profile-field">
+          <label>Email</label>
+          <p id="profileEmail"></p>
+        </div>
+        <div class="profile-field">
+          <label>User ID</label>
+          <p id="profileId" style="font-size:0.8rem;color:#888;font-family:monospace"></p>
+        </div>
+        <div class="profile-field">
+          <label>Member since</label>
+          <p id="profileCreated"></p>
+        </div>
+      </div>
+
+      <div id="editForm" style="background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:2rem;max-width:500px;margin:2rem auto 0">
+        <h3 style="margin-bottom:1rem;font-size:1rem">Edit Profile</h3>
+        <div id="editFeedback" class="feedback" style="margin-bottom:0.75rem"></div>
+        <div class="profile-field">
+          <label for="editUsername">Username</label>
+          <input id="editUsername" type="text" style="width:100%;padding:0.5rem 0.75rem;font-size:0.9rem;border:1px solid #d0d0d0;border-radius:4px">
+        </div>
+        <div class="profile-field">
+          <label for="editEmail">Email</label>
+          <input id="editEmail" type="email" style="width:100%;padding:0.5rem 0.75rem;font-size:0.9rem;border:1px solid #d0d0d0;border-radius:4px">
+        </div>
+        <button id="saveBtn" class="btn btn-cta" style="margin-top:0.5rem">Save Changes</button>
+        <div id="editLoading" style="display:none;margin-top:0.75rem;color:#666;font-size:0.85rem">Saving...</div>
+      </div>
+
+      <div id="passwordForm" style="background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:2rem;max-width:500px;margin:2rem auto 0">
+        <h3 style="margin-bottom:1rem;font-size:1rem">Change Password</h3>
+        <div id="pwFeedback" class="feedback" style="margin-bottom:0.75rem"></div>
+        <div class="profile-field">
+          <label for="pwCurrent">Current Password</label>
+          <input id="pwCurrent" type="password" style="width:100%;padding:0.5rem 0.75rem;font-size:0.9rem;border:1px solid #d0d0d0;border-radius:4px">
+        </div>
+        <div class="profile-field">
+          <label for="pwNew">New Password</label>
+          <input id="pwNew" type="password" style="width:100%;padding:0.5rem 0.75rem;font-size:0.9rem;border:1px solid #d0d0d0;border-radius:4px">
+        </div>
+        <div class="profile-field">
+          <label for="pwConfirm">Confirm New Password</label>
+          <input id="pwConfirm" type="password" style="width:100%;padding:0.5rem 0.75rem;font-size:0.9rem;border:1px solid #d0d0d0;border-radius:4px">
+        </div>
+        <button id="pwSaveBtn" class="btn btn-cta" style="margin-top:0.5rem">Update Password</button>
+        <div id="pwLoading" style="display:none;margin-top:0.75rem;color:#666;font-size:0.85rem">Updating...</div>
+      </div>
+
+      <div id="mapPrefForm" style="background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:2rem;max-width:500px;margin:2rem auto 0">
+        <h3 style="margin-bottom:1rem;font-size:1rem">Map Preferences</h3>
+        <div id="mapPrefFeedback" class="feedback" style="margin-bottom:0.75rem"></div>
+        <div class="profile-field">
+          <label for="mapCitySelect">Preferred City</label>
+          <select id="mapCitySelect" style="width:100%;padding:0.5rem 0.75rem;font-size:0.9rem;border:1px solid #d0d0d0;border-radius:4px;background:#fff">
+            <option value="">Select a city...</option>
+            <option value="Brussels">Brussels</option>
+            <option value="Amsterdam">Amsterdam</option>
+            <option value="Paris">Paris</option>
+            <option value="Berlin">Berlin</option>
+            <option value="London">London</option>
+            <option value="Luxembourg">Luxembourg</option>
+            <option value="Other...">Other...</option>
+          </select>
+        </div>
+        <div id="otherCityGroup" style="display:none" class="profile-field">
+          <label for="otherCityInput">Enter city</label>
+          <input id="otherCityInput" type="text" placeholder="e.g. Madrid" style="width:100%;padding:0.5rem 0.75rem;font-size:0.9rem;border:1px solid #d0d0d0;border-radius:4px">
+        </div>
+        <div id="mapPrefCurrent" class="profile-field" style="display:none">
+          <label>Current preference</label>
+          <p id="mapPrefValue" style="font-size:0.85rem;color:#666"></p>
+        </div>
+        <button id="mapPrefSaveBtn" class="btn btn-cta" style="margin-top:0.5rem">Save Preference</button>
+        <div id="mapPrefLoading" style="display:none;margin-top:0.75rem;color:#666;font-size:0.85rem">Saving...</div>
+      </div>
+
+      <div class="danger-zone" style="max-width:500px;margin:2rem auto 0">
+        <div style="background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:2rem;border:1px solid #D32F2F">
+          <h3 style="margin-bottom:0.5rem;font-size:1rem;color:#D32F2F">Danger Zone</h3>
+          <p style="font-size:0.85rem;color:#666;margin-bottom:1rem">Once you delete your account, there is no going back. Public observations will remain visible.</p>
+          <button id="deleteAccountBtn" class="btn" style="background:#D32F2F;color:#fff">Delete Account</button>
+        </div>
+      </div>
+    </div>
+    <div id="error" style="display:none;text-align:center;padding:3rem;color:#D32F2F"></div>
+  </div>
+
+  <div id="deleteModal" class="modal-overlay" style="display:none">
+    <div class="modal" style="background:#fff;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,0.2);padding:2rem;max-width:400px;width:90%">
+      <h3 style="margin-bottom:0.75rem;font-size:1rem;color:#D32F2F">Delete Account</h3>
+      <p style="font-size:0.9rem;color:#666;margin-bottom:1.5rem">Are you sure you want to delete your account? This action cannot be undone.</p>
+      <div id="deleteFeedback" class="feedback" style="margin-bottom:0.75rem"></div>
+      <div style="display:flex;gap:0.75rem;justify-content:flex-end">
+        <button id="cancelDeleteBtn" class="btn" style="background:#eee;color:#1E1E1E">Cancel</button>
+        <button id="confirmDeleteBtn" class="btn" style="background:#D32F2F;color:#fff">Delete</button>
+      </div>
+      <div id="deleteLoading" style="display:none;margin-top:0.75rem;color:#666;font-size:0.85rem">Deleting account...</div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/profile.js"></script>
+</body>
+</html>
