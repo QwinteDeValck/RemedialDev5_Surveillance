@@ -226,6 +226,46 @@
     closeBtn.addEventListener('click', closeSidebar);
   }
 
+  function setupSearch() {
+    const input = document.getElementById('searchInput');
+    const btn = document.getElementById('searchBtn');
+    if (!input || !btn) return;
+    let searchMarker;
+
+    function doSearch() {
+      const q = input.value.trim();
+      if (!q) return;
+
+      if (searchMarker) map.removeLayer(searchMarker);
+
+      const overlay = document.getElementById('mapOverlay');
+      overlay.innerHTML = '<div class="map-overlay-content"><div class="spinner"></div><p>Searching...</p></div>';
+      overlay.classList.remove('hidden');
+
+      fetch(`https://nominatim.openstreetmap.org/search?q=${encodeURIComponent(q)}&format=json&limit=1`)
+        .then((r) => r.json())
+        .then((data) => {
+          overlay.classList.add('hidden');
+          if (!data || data.length === 0) {
+            showOverlay('<h2>Location not found</h2><p>Try a different search term.</p>');
+            return;
+          }
+          const { lat, lon, display_name } = data[0];
+          const latlng = [parseFloat(lat), parseFloat(lon)];
+          searchMarker = L.marker(latlng, { icon: redIcon }).addTo(map);
+          searchMarker.bindPopup(`<strong>${display_name}</strong>`).openPopup();
+          map.setView(latlng, 14);
+        })
+        .catch(() => {
+          overlay.classList.add('hidden');
+          showOverlay('<h2>Search error</h2><p>Could not connect to the search service.</p>');
+        });
+    }
+
+    btn.addEventListener('click', doSearch);
+    input.addEventListener('keydown', (e) => { if (e.key === 'Enter') doSearch(); });
+  }
+
   function setupModeSwitcher() {
     document.querySelectorAll('.mode-btn').forEach((btn) => {
       btn.addEventListener('click', () => {
@@ -282,6 +322,7 @@
       }
 
       setupSidebarToggle();
+      setupSearch();
       setupFilters();
       setupModeSwitcher();
       renderMode(allObservations);
