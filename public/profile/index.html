@@ -72,6 +72,34 @@
         <div id="pwLoading" style="display:none;margin-top:0.75rem;color:#666;font-size:0.85rem">Updating...</div>
       </div>
 
+      <div id="mapPrefForm" style="background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:2rem;max-width:500px;margin:2rem auto 0">
+        <h3 style="margin-bottom:1rem;font-size:1rem">Map Preferences</h3>
+        <div id="mapPrefFeedback" class="feedback" style="margin-bottom:0.75rem"></div>
+        <div class="profile-field">
+          <label for="mapCitySelect">Preferred City</label>
+          <select id="mapCitySelect" style="width:100%;padding:0.5rem 0.75rem;font-size:0.9rem;border:1px solid #d0d0d0;border-radius:4px;background:#fff">
+            <option value="">Select a city...</option>
+            <option value="Brussels">Brussels</option>
+            <option value="Amsterdam">Amsterdam</option>
+            <option value="Paris">Paris</option>
+            <option value="Berlin">Berlin</option>
+            <option value="London">London</option>
+            <option value="Luxembourg">Luxembourg</option>
+            <option value="Other...">Other...</option>
+          </select>
+        </div>
+        <div id="otherCityGroup" style="display:none" class="profile-field">
+          <label for="otherCityInput">Enter city</label>
+          <input id="otherCityInput" type="text" placeholder="e.g. Madrid" style="width:100%;padding:0.5rem 0.75rem;font-size:0.9rem;border:1px solid #d0d0d0;border-radius:4px">
+        </div>
+        <div id="mapPrefCurrent" class="profile-field" style="display:none">
+          <label>Current preference</label>
+          <p id="mapPrefValue" style="font-size:0.85rem;color:#666"></p>
+        </div>
+        <button id="mapPrefSaveBtn" class="btn btn-cta" style="margin-top:0.5rem">Save Preference</button>
+        <div id="mapPrefLoading" style="display:none;margin-top:0.75rem;color:#666;font-size:0.85rem">Saving...</div>
+      </div>
+
       <div style="text-align:center;margin-top:1rem;display:flex;gap:0.75rem;justify-content:center">
         <button id="toggleEditBtn" class="btn" style="background:#eee;color:#1E1E1E;font-size:0.85rem">Edit Profile</button>
         <button id="togglePwBtn" class="btn" style="background:#eee;color:#1E1E1E;font-size:0.85rem">Change Password</button>

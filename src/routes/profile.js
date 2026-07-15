@@ -28,4 +28,20 @@ router.put('/password', authenticate, async (req, res) => {
   res.json(result);
 });
 
+router.get('/preferences', authenticate, async (req, res) => {
+  const result = await profileController.getPreferences(req.user.id);
+  if (result.error) {
+    return res.status(result.status || 404).json({ error: result.error });
+  }
+  res.json(result);
+});
+
+router.put('/preferences', authenticate, async (req, res) => {
+  const result = await profileController.updatePreferences(req.user.id, req.body);
+  if (result.error) {
+    return res.status(result.status || 400).json({ error: result.error });
+  }
+  res.json(result);
+});
+
 module.exports = router;

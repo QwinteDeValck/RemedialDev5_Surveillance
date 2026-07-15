@@ -133,6 +133,117 @@ document.addEventListener('DOMContentLoaded', async () => {
     document.getElementById('pwConfirm').value = '';
   });
 
+  async function loadMapPreferences() {
+    try {
+      const res = await fetch('/api/profile/preferences', {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+
+      if (!res.ok) return;
+
+      const prefs = await res.json();
+
+      if (prefs.preferred_city) {
+        document.getElementById('mapPrefValue').textContent = `${prefs.preferred_city} (${parseFloat(prefs.preferred_latitude).toFixed(4)}, ${parseFloat(prefs.preferred_longitude).toFixed(4)})`;
+        document.getElementById('mapPrefCurrent').style.display = 'block';
+        const presetCities = ['Brussels', 'Amsterdam', 'Paris', 'Berlin', 'London', 'Luxembourg'];
+        if (presetCities.includes(prefs.preferred_city)) {
+          document.getElementById('mapCitySelect').value = prefs.preferred_city;
+        } else {
+          document.getElementById('mapCitySelect').value = 'Other...';
+          document.getElementById('otherCityGroup').style.display = 'block';
+          document.getElementById('otherCityInput').value = prefs.preferred_city;
+        }
+      }
+    } catch {
+      // silently fail
+    }
+  }
+
+  const mapCitySelect = document.getElementById('mapCitySelect');
+  const otherCityGroup = document.getElementById('otherCityGroup');
+  const otherCityInput = document.getElementById('otherCityInput');
+
+  mapCitySelect.addEventListener('change', () => {
+    otherCityGroup.style.display = mapCitySelect.value === 'Other...' ? 'block' : 'none';
+    if (mapCitySelect.value !== 'Other...') {
+      otherCityInput.value = '';
+    }
+  });
+
+  document.getElementById('mapPrefSaveBtn').addEventListener('click', async () => {
+    const mapPrefFeedback = document.getElementById('mapPrefFeedback');
+    const mapPrefSaveBtn = document.getElementById('mapPrefSaveBtn');
+    const mapPrefLoading = document.getElementById('mapPrefLoading');
+
+    let city = mapCitySelect.value;
+
+    if (!city) {
+      mapPrefFeedback.className = 'feedback error';
+      mapPrefFeedback.textContent = 'Please select a city.';
+      return;
+    }
+
+    if (city === 'Other...') {
+      city = otherCityInput.value.trim();
+      if (!city) {
+        mapPrefFeedback.className = 'feedback error';
+        mapPrefFeedback.textContent = 'Please enter a city name.';
+        return;
+      }
+    }
+
+    mapPrefSaveBtn.style.display = 'none';
+    mapPrefLoading.style.display = 'block';
+    mapPrefFeedback.className = 'feedback';
+    mapPrefFeedback.textContent = '';
+
+    try {
+      const res = await fetch('/api/profile/preferences', {
+        method: 'PUT',
+        headers: {
+          'Content-Type': 'application/json',
+          Authorization: `Bearer ${getToken()}`,
+        },
+        body: JSON.stringify({ city }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        mapPrefFeedback.className = 'feedback error';
+        mapPrefFeedback.textContent = data.error || 'Failed to save preference.';
+        mapPrefSaveBtn.style.display = 'block';
+        mapPrefLoading.style.display = 'none';
+        return;
+      }
+
+      mapPrefFeedback.className = 'feedback success';
+      mapPrefFeedback.textContent = 'Preference saved.';
+      mapPrefSaveBtn.style.display = 'block';
+      mapPrefLoading.style.display = 'none';
+
+      document.getElementById('mapPrefValue').textContent = `${data.preferred_city} (${parseFloat(data.preferred_latitude).toFixed(4)}, ${parseFloat(data.preferred_longitude).toFixed(4)})`;
+      document.getElementById('mapPrefCurrent').style.display = 'block';
+      const presetCities = ['Brussels', 'Amsterdam', 'Paris', 'Berlin', 'London', 'Luxembourg'];
+      if (presetCities.includes(data.preferred_city)) {
+        document.getElementById('mapCitySelect').value = data.preferred_city;
+        otherCityGroup.style.display = 'none';
+      } else {
+        document.getElementById('mapCitySelect').value = 'Other...';
+        document.getElementById('otherCityInput').value = data.preferred_city;
+        otherCityGroup.style.display = 'block';
+      }
+    } catch {
+      mapPrefFeedback.className = 'feedback error';
+      mapPrefFeedback.textContent = 'Could not connect to server.';
+      mapPrefSaveBtn.style.display = 'block';
+      mapPrefLoading.style.display = 'none';
+    }
+  });
+
+  loadMapPreferences();
+
   pwSaveBtn.addEventListener('click', async () => {
     const currentPassword = document.getElementById('pwCurrent').value;
     const newPassword = document.getElementById('pwNew').value;

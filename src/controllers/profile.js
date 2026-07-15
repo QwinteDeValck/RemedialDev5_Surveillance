@@ -1,5 +1,6 @@
 const db = require('../db');
 const { hashPassword, verifyPassword } = require('./users');
+const { geocode } = require('../services/geocoding');
 
 async function getProfile(userId) {
   const result = await db.pool.query(
@@ -91,4 +92,62 @@ async function updateProfile(userId, body) {
   return result.rows[0];
 }
 
-module.exports = { getProfile, updateProfile, updatePassword };
+async function getPreferences(userId) {
+  const result = await db.pool.query(
+    `SELECT preferred_city, preferred_latitude, preferred_longitude FROM users WHERE id = $1`,
+    [userId]
+  );
+
+  if (result.rows.length === 0) {
+    return { error: 'User not found.', status: 404 };
+  }
+
+  return result.rows[0];
+}
+
+async function updatePreferences(userId, body) {
+  const { city } = body;
+
+  if (!city || !city.trim()) {
+    return { error: 'City is required.', status: 400 };
+  }
+
+  const trimmedCity = city.trim();
+
+  if (trimmedCity === 'Other...') {
+    return { error: 'Please enter a city name.', status: 400 };
+  }
+
+  const presetCities = ['Brussels', 'Amsterdam', 'Paris', 'Berlin', 'London', 'Luxembourg'];
+  const isPreset = presetCities.includes(trimmedCity);
+
+  let lat, lon, cityName;
+
+  if (isPreset) {
+    const geocodeResult = await geocode(trimmedCity);
+    if (geocodeResult.error) {
+      return { error: geocodeResult.error, status: 400 };
+    }
+    lat = geocodeResult.latitude;
+    lon = geocodeResult.longitude;
+    cityName = trimmedCity;
+  } else {
+    const geocodeResult = await geocode(trimmedCity);
+    if (geocodeResult.error) {
+      return { error: 'Could not find the specified city.', status: 400 };
+    }
+    lat = geocodeResult.latitude;
+    lon = geocodeResult.longitude;
+    cityName = trimmedCity;
+  }
+
+  const result = await db.pool.query(
+    `UPDATE users SET preferred_city = $1, preferred_latitude = $2, preferred_longitude = $3 WHERE id = $4
+     RETURNING preferred_city, preferred_latitude, preferred_longitude`,
+    [cityName, lat, lon, userId]
+  );
+
+  return result.rows[0];
+}
+
+module.exports = { getProfile, updateProfile, updatePassword, getPreferences, updatePreferences };
