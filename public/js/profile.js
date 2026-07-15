@@ -48,19 +48,9 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   await loadProfile();
 
-  const toggleBtn = document.getElementById('toggleEditBtn');
-  const editForm = document.getElementById('editForm');
   const saveBtn = document.getElementById('saveBtn');
   const editLoading = document.getElementById('editLoading');
   const editFeedback = document.getElementById('editFeedback');
-
-  toggleBtn.addEventListener('click', () => {
-    const isHidden = editForm.style.display === 'none' || !editForm.style.display;
-    editForm.style.display = isHidden ? 'block' : 'none';
-    toggleBtn.textContent = isHidden ? 'Cancel' : 'Edit Profile';
-    editFeedback.className = 'feedback';
-    editFeedback.textContent = '';
-  });
 
   saveBtn.addEventListener('click', async () => {
     const username = document.getElementById('editUsername').value.trim();
@@ -113,24 +103,6 @@ document.addEventListener('DOMContentLoaded', async () => {
       saveBtn.style.display = 'block';
       editLoading.style.display = 'none';
     }
-  });
-
-  const togglePwBtn = document.getElementById('togglePwBtn');
-  const passwordForm = document.getElementById('passwordForm');
-  const pwSaveBtn = document.getElementById('pwSaveBtn');
-  const pwLoading = document.getElementById('pwLoading');
-  const pwFeedback = document.getElementById('pwFeedback');
-  let passwordFormVisible = false;
-
-  togglePwBtn.addEventListener('click', () => {
-    passwordFormVisible = !passwordFormVisible;
-    passwordForm.style.display = passwordFormVisible ? 'block' : 'none';
-    togglePwBtn.textContent = passwordFormVisible ? 'Cancel' : 'Change Password';
-    pwFeedback.className = 'feedback';
-    pwFeedback.textContent = '';
-    document.getElementById('pwCurrent').value = '';
-    document.getElementById('pwNew').value = '';
-    document.getElementById('pwConfirm').value = '';
   });
 
   async function loadMapPreferences() {
@@ -304,6 +276,10 @@ document.addEventListener('DOMContentLoaded', async () => {
       deleteLoading.style.display = 'none';
     }
   });
+
+  const pwSaveBtn = document.getElementById('pwSaveBtn');
+  const pwLoading = document.getElementById('pwLoading');
+  const pwFeedback = document.getElementById('pwFeedback');
 
   pwSaveBtn.addEventListener('click', async () => {
     const currentPassword = document.getElementById('pwCurrent').value;
