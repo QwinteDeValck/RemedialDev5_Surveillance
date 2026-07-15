@@ -1,0 +1,47 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Profile — Neighborhood Surveillance</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/" class="navbar-brand">Neighborhood Surveillance</a>
+    <div class="navbar-links" id="navLinks"></div>
+  </nav>
+
+  <div class="container">
+    <h2 style="margin-bottom:2rem">Profile</h2>
+    <div id="loading" style="text-align:center;padding:3rem;color:#666">Loading...</div>
+    <div id="profileContent" style="display:none">
+      <div style="background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:2rem;max-width:500px;margin:0 auto">
+        <div style="display:flex;align-items:center;gap:1rem;margin-bottom:2rem;padding-bottom:1.5rem;border-bottom:1px solid #e0e0e0">
+          <div id="profileAvatar" style="width:48px;height:48px;border-radius:50%;display:flex;align-items:center;justify-content:center;color:#fff;font-size:1.25rem;font-weight:700;flex-shrink:0"></div>
+          <div>
+            <div id="profileUsername" style="font-size:1.125rem;font-weight:600"></div>
+            <div id="profileRole" style="font-size:0.8rem;color:#888;text-transform:capitalize"></div>
+          </div>
+        </div>
+        <div class="profile-field">
+          <label>Email</label>
+          <p id="profileEmail"></p>
+        </div>
+        <div class="profile-field">
+          <label>User ID</label>
+          <p id="profileId" style="font-size:0.8rem;color:#888;font-family:monospace"></p>
+        </div>
+        <div class="profile-field">
+          <label>Member since</label>
+          <p id="profileCreated"></p>
+        </div>
+      </div>
+    </div>
+    <div id="error" style="display:none;text-align:center;padding:3rem;color:#D32F2F"></div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/profile.js"></script>
+</body>
+</html>
