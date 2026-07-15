@@ -8,12 +8,16 @@ async function login({ email, password }) {
   }
 
   const result = await db.pool.query(
-    'SELECT id, username, email, password, role_id FROM users WHERE email = $1',
+    'SELECT id, username, email, password, role_id, deleted_at FROM users WHERE email = $1',
     [email]
   );
 
   if (result.rows.length === 0) {
     return { error: 'Invalid email or password.' };
+  }
+
+  if (result.rows[0].deleted_at) {
+    return { error: 'This account has been deleted.' };
   }
 
   const user = result.rows[0];

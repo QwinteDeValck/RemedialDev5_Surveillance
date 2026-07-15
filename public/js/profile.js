@@ -244,6 +244,67 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   loadMapPreferences();
 
+  const deleteModal = document.getElementById('deleteModal');
+  const deleteBtn = document.getElementById('deleteAccountBtn');
+  const cancelDeleteBtn = document.getElementById('cancelDeleteBtn');
+  const confirmDeleteBtn = document.getElementById('confirmDeleteBtn');
+  const deleteFeedback = document.getElementById('deleteFeedback');
+  const deleteLoading = document.getElementById('deleteLoading');
+
+  deleteBtn.addEventListener('click', () => {
+    deleteModal.style.display = 'flex';
+    deleteFeedback.className = 'feedback';
+    deleteFeedback.textContent = '';
+    confirmDeleteBtn.style.display = 'block';
+    deleteLoading.style.display = 'none';
+  });
+
+  cancelDeleteBtn.addEventListener('click', () => {
+    deleteModal.style.display = 'none';
+  });
+
+  deleteModal.addEventListener('click', (e) => {
+    if (e.target === deleteModal) deleteModal.style.display = 'none';
+  });
+
+  confirmDeleteBtn.addEventListener('click', async () => {
+    confirmDeleteBtn.style.display = 'none';
+    deleteLoading.style.display = 'block';
+    deleteFeedback.className = 'feedback';
+    deleteFeedback.textContent = '';
+
+    try {
+      const res = await fetch('/api/profile', {
+        method: 'DELETE',
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) {
+        deleteFeedback.className = 'feedback error';
+        deleteFeedback.textContent = data.error || 'Failed to delete account.';
+        confirmDeleteBtn.style.display = 'block';
+        deleteLoading.style.display = 'none';
+        return;
+      }
+
+      deleteFeedback.className = 'feedback success';
+      deleteFeedback.textContent = 'Account deleted. Redirecting...';
+
+      setTimeout(() => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
+        window.location.href = '/auth/login.html';
+      }, 1500);
+    } catch {
+      deleteFeedback.className = 'feedback error';
+      deleteFeedback.textContent = 'Could not connect to server.';
+      confirmDeleteBtn.style.display = 'block';
+      deleteLoading.style.display = 'none';
+    }
+  });
+
   pwSaveBtn.addEventListener('click', async () => {
     const currentPassword = document.getElementById('pwCurrent').value;
     const newPassword = document.getElementById('pwNew').value;

@@ -104,8 +104,29 @@
         <button id="toggleEditBtn" class="btn" style="background:#eee;color:#1E1E1E;font-size:0.85rem">Edit Profile</button>
         <button id="togglePwBtn" class="btn" style="background:#eee;color:#1E1E1E;font-size:0.85rem">Change Password</button>
       </div>
+
+      <div class="danger-zone" style="max-width:500px;margin:2rem auto 0">
+        <div style="background:#fff;border-radius:8px;box-shadow:0 1px 3px rgba(0,0,0,0.1);padding:2rem;border:1px solid #D32F2F">
+          <h3 style="margin-bottom:0.5rem;font-size:1rem;color:#D32F2F">Danger Zone</h3>
+          <p style="font-size:0.85rem;color:#666;margin-bottom:1rem">Once you delete your account, there is no going back. Public observations will remain visible.</p>
+          <button id="deleteAccountBtn" class="btn" style="background:#D32F2F;color:#fff">Delete Account</button>
+        </div>
+      </div>
     </div>
     <div id="error" style="display:none;text-align:center;padding:3rem;color:#D32F2F"></div>
+  </div>
+
+  <div id="deleteModal" class="modal-overlay" style="display:none">
+    <div class="modal" style="background:#fff;border-radius:8px;box-shadow:0 4px 24px rgba(0,0,0,0.2);padding:2rem;max-width:400px;width:90%">
+      <h3 style="margin-bottom:0.75rem;font-size:1rem;color:#D32F2F">Delete Account</h3>
+      <p style="font-size:0.9rem;color:#666;margin-bottom:1.5rem">Are you sure you want to delete your account? This action cannot be undone.</p>
+      <div id="deleteFeedback" class="feedback" style="margin-bottom:0.75rem"></div>
+      <div style="display:flex;gap:0.75rem;justify-content:flex-end">
+        <button id="cancelDeleteBtn" class="btn" style="background:#eee;color:#1E1E1E">Cancel</button>
+        <button id="confirmDeleteBtn" class="btn" style="background:#D32F2F;color:#fff">Delete</button>
+      </div>
+      <div id="deleteLoading" style="display:none;margin-top:0.75rem;color:#666;font-size:0.85rem">Deleting account...</div>
+    </div>
   </div>
 
   <script src="/js/app.js"></script>

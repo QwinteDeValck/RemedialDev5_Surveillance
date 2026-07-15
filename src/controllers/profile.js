@@ -150,4 +150,17 @@ async function updatePreferences(userId, body) {
   return result.rows[0];
 }
 
-module.exports = { getProfile, updateProfile, updatePassword, getPreferences, updatePreferences };
+async function deleteAccount(userId) {
+  const result = await db.pool.query(
+    'UPDATE users SET deleted_at = NOW() WHERE id = $1 AND deleted_at IS NULL RETURNING id',
+    [userId]
+  );
+
+  if (result.rows.length === 0) {
+    return { error: 'User not found or already deleted.', status: 404 };
+  }
+
+  return { message: 'Account deleted successfully.' };
+}
+
+module.exports = { getProfile, updateProfile, updatePassword, getPreferences, updatePreferences, deleteAccount };
