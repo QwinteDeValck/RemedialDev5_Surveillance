@@ -29,6 +29,23 @@
 
   map = L.map('map').setView([50.8503, 4.3517], 12);
 
+  async function applyPreferences() {
+    if (typeof isLoggedIn !== 'function' || !isLoggedIn()) return;
+    try {
+      const res = await fetch('/api/profile/preferences', {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      if (!res.ok) return;
+      const prefs = await res.json();
+      if (prefs.preferred_latitude && prefs.preferred_longitude) {
+        map.setView([parseFloat(prefs.preferred_latitude), parseFloat(prefs.preferred_longitude)], 12);
+      }
+    } catch {
+      // keep default
+    }
+  }
+  applyPreferences();
+
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     maxZoom: 19,
     attribution: '&copy; <a href="https://openstreetmap.org/copyright">OpenStreetMap</a> contributors',
