@@ -58,6 +58,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     error.textContent = 'Could not load dashboard data.';
   }
 
+  // ----- Users -----
   const usersLoading = document.getElementById('usersLoading');
   const usersContent = document.getElementById('usersContent');
   const usersError = document.getElementById('usersError');
@@ -111,7 +112,7 @@ document.addEventListener('DOMContentLoaded', async () => {
             <td style="color:#666">${user.email}</td>
             <td>
               ${canChangeRole ? `
-                <select class="role-select" data-user-id="${user.id}" onchange="handleRoleChange('${user.id}', this.value)">
+                <select class="role-select" onchange="handleRoleChange('${user.id}', this.value)">
                   ${roleOptions.map(r => `<option value="${r}" ${r === user.role_name ? 'selected' : ''}>${r}</option>`).join('')}
                 </select>
               ` : `<span class="badge badge-role">${user.role_name}</span>`}
@@ -193,6 +194,161 @@ document.addEventListener('DOMContentLoaded', async () => {
       } else {
         await loadUsers();
       }
+    } catch {
+      alert('Could not connect to server.');
+    }
+  };
+
+  // ----- Observations -----
+  const obsLoading = document.getElementById('obsLoading');
+  const obsContent = document.getElementById('obsContent');
+  const obsError = document.getElementById('obsError');
+  const obsBody = document.getElementById('obsBody');
+  const obsSearch = document.getElementById('obsSearch');
+  const obsCategory = document.getElementById('obsCategory');
+  const obsStatus = document.getElementById('obsStatus');
+
+  let obsDebounce;
+
+  async function loadObservations() {
+    const params = new URLSearchParams();
+    if (obsSearch.value.trim()) params.set('search', obsSearch.value.trim());
+    if (obsCategory.value.trim()) params.set('category', obsCategory.value.trim());
+    if (obsStatus.value) params.set('status', obsStatus.value);
+
+    obsLoading.style.display = 'block';
+    obsContent.style.display = 'none';
+    obsError.style.display = 'none';
+
+    try {
+      const res = await fetch(`/api/admin/observations?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+
+      if (!res.ok) throw new Error('Failed to load observations');
+
+      const observations = await res.json();
+
+      obsBody.innerHTML = observations.map(obs => `
+        <tr>
+          <td><span class="cell-truncate">${obs.title}</span></td>
+          <td><span class="badge badge-role">${obs.category}</span></td>
+          <td>${obs.creator_username}</td>
+          <td><span class="badge ${obs.is_public ? 'badge-active' : 'badge-deleted'}">${obs.is_public ? 'Public' : 'Private'}</span></td>
+          <td><span class="badge badge-open">${obs.obs_status}</span></td>
+          <td style="color:#999;font-size:0.8rem">${new Date(obs.created_at).toLocaleDateString()}</td>
+        </tr>
+      `).join('');
+
+      obsLoading.style.display = 'none';
+      obsContent.style.display = 'block';
+    } catch {
+      obsLoading.style.display = 'none';
+      obsError.style.display = 'block';
+      obsError.textContent = 'Failed to load observations.';
+    }
+  }
+
+  obsSearch.addEventListener('input', () => {
+    clearTimeout(obsDebounce);
+    obsDebounce = setTimeout(loadObservations, 300);
+  });
+
+  obsCategory.addEventListener('input', () => {
+    clearTimeout(obsDebounce);
+    obsDebounce = setTimeout(loadObservations, 300);
+  });
+
+  obsStatus.addEventListener('change', loadObservations);
+
+  await loadObservations();
+
+  // ----- Requests -----
+  const reqLoading = document.getElementById('reqLoading');
+  const reqContent = document.getElementById('reqContent');
+  const reqError = document.getElementById('reqError');
+  const reqBody = document.getElementById('reqBody');
+  const reqStatus = document.getElementById('reqStatus');
+  const reqType = document.getElementById('reqType');
+
+  async function loadRequests() {
+    const params = new URLSearchParams();
+    if (reqStatus.value) params.set('status', reqStatus.value);
+    if (reqType.value) params.set('type', reqType.value);
+
+    reqLoading.style.display = 'block';
+    reqContent.style.display = 'none';
+    reqError.style.display = 'none';
+
+    try {
+      const res = await fetch(`/api/admin/requests?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+
+      if (!res.ok) throw new Error('Failed to load requests');
+
+      const requests = await res.json();
+
+      reqBody.innerHTML = requests.map(req => {
+        const isPending = req.req_status === 'PENDING';
+        return `
+          <tr>
+            <td><span class="cell-truncate">${req.observation_title}</span></td>
+            <td><span class="badge ${req.type === 'EDIT' ? 'badge-role' : 'badge-deleted'}">${req.type}</span></td>
+            <td>${req.requester_username}</td>
+            <td style="color:#666;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${req.reason || '—'}</td>
+            <td><span class="badge badge-${req.req_status === 'PENDING' ? 'pending' : req.req_status === 'APPROVED' ? 'approved' : 'rejected'}">${req.req_status}</span></td>
+            <td style="color:#999;font-size:0.8rem">${new Date(req.created_at).toLocaleDateString()}</td>
+            <td>
+              ${isPending ? `
+                <button class="action-btn" style="background:#E8F5E9;color:#388E3C;margin-right:0.25rem" onclick="handleApprove('${req.id}')">Approve</button>
+                <button class="action-btn" style="background:#FFEBEE;color:#D32F2F" onclick="handleReject('${req.id}')">Reject</button>
+              ` : '<span style="color:#999;font-size:0.8rem">—</span>'}
+            </td>
+          </tr>
+        `;
+      }).join('');
+
+      reqLoading.style.display = 'none';
+      reqContent.style.display = 'block';
+    } catch {
+      reqLoading.style.display = 'none';
+      reqError.style.display = 'block';
+      reqError.textContent = 'Failed to load requests.';
+    }
+  }
+
+  reqStatus.addEventListener('change', loadRequests);
+  reqType.addEventListener('change', loadRequests);
+
+  await loadRequests();
+
+  window.handleApprove = async (requestId) => {
+    if (!confirm('Approve this request?')) return;
+    try {
+      const res = await fetch(`/api/admin/requests/${requestId}/approve`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      const data = await res.json();
+      if (!res.ok) { alert(data.error || 'Failed.'); return; }
+      await loadRequests();
+      await loadObservations();
+    } catch {
+      alert('Could not connect to server.');
+    }
+  };
+
+  window.handleReject = async (requestId) => {
+    if (!confirm('Reject this request?')) return;
+    try {
+      const res = await fetch(`/api/admin/requests/${requestId}/reject`, {
+        method: 'PUT',
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+      const data = await res.json();
+      if (!res.ok) { alert(data.error || 'Failed.'); return; }
+      await loadRequests();
     } catch {
       alert('Could not connect to server.');
     }

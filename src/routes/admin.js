@@ -1,7 +1,7 @@
 const { Router } = require('express');
 const router = Router();
 const { authenticate, authorize } = require('../middleware/auth');
-const { getDashboard, getUsers, updateUserRole, toggleUserStatus } = require('../controllers/admin');
+const { getDashboard, getUsers, updateUserRole, toggleUserStatus, getObservations, getRequests, approveRequest, rejectRequest } = require('../controllers/admin');
 
 router.get('/dashboard', authenticate, authorize('MODERATOR'), async (req, res) => {
   try {
@@ -55,6 +55,54 @@ router.put('/users/:id/status', authenticate, authorize('MODERATOR'), async (req
   } catch (err) {
     console.error('Admin toggle status error:', err);
     res.status(500).json({ error: 'Failed to update user status.' });
+  }
+});
+
+router.get('/observations', authenticate, authorize('MODERATOR'), async (req, res) => {
+  try {
+    const { search, category, status } = req.query;
+    const observations = await getObservations({ search, category, status });
+    res.json(observations);
+  } catch (err) {
+    console.error('Admin observations error:', err);
+    res.status(500).json({ error: 'Failed to load observations.' });
+  }
+});
+
+router.get('/requests', authenticate, authorize('MODERATOR'), async (req, res) => {
+  try {
+    const { status, type } = req.query;
+    const requests = await getRequests({ status, type });
+    res.json(requests);
+  } catch (err) {
+    console.error('Admin requests error:', err);
+    res.status(500).json({ error: 'Failed to load requests.' });
+  }
+});
+
+router.put('/requests/:id/approve', authenticate, authorize('MODERATOR'), async (req, res) => {
+  try {
+    const result = await approveRequest(req.params.id);
+    if (result.error) {
+      return res.status(result.status || 400).json({ error: result.error });
+    }
+    res.json(result);
+  } catch (err) {
+    console.error('Admin approve request error:', err);
+    res.status(500).json({ error: 'Failed to approve request.' });
+  }
+});
+
+router.put('/requests/:id/reject', authenticate, authorize('MODERATOR'), async (req, res) => {
+  try {
+    const result = await rejectRequest(req.params.id);
+    if (result.error) {
+      return res.status(result.status || 400).json({ error: result.error });
+    }
+    res.json(result);
+  } catch (err) {
+    console.error('Admin reject request error:', err);
+    res.status(500).json({ error: 'Failed to reject request.' });
   }
 });
 

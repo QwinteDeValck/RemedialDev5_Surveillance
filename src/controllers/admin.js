@@ -137,4 +137,113 @@ async function toggleUserStatus(userId, action, requesterId) {
   return { error: 'Invalid action. Use "activate" or "deactivate".', status: 400 };
 }
 
-module.exports = { getDashboard, getUsers, updateUserRole, toggleUserStatus };
+async function getObservations({ search, category, status }) {
+  let sql = `
+    SELECT o.id, o.title, o.category, o.description, o.address, o.latitude, o.longitude,
+           o.is_public, o.status AS obs_status, o.created_by, o.created_at,
+           u.username AS creator_username
+    FROM observations o JOIN users u ON u.id = o.created_by
+    WHERE 1=1
+  `;
+  const params = [];
+  let idx = 1;
+
+  if (search) {
+    sql += ` AND (o.title ILIKE $${idx} OR o.description ILIKE $${idx} OR o.address ILIKE $${idx})`;
+    params.push(`%${search}%`);
+    idx++;
+  }
+
+  if (category) {
+    sql += ` AND o.category ILIKE $${idx}`;
+    params.push(category);
+    idx++;
+  }
+
+  if (status) {
+    sql += ` AND o.status = $${idx}`;
+    params.push(status.toUpperCase());
+    idx++;
+  }
+
+  sql += ' ORDER BY o.created_at DESC';
+
+  const result = await db.pool.query(sql, params);
+  return result.rows;
+}
+
+async function getRequests({ status, type }) {
+  let sql = `
+    SELECT rq.id, rq.observation_id, rq.requested_by, rq.type, rq.reason, rq.status AS req_status, rq.created_at,
+           o.title AS observation_title, u.username AS requester_username
+    FROM observation_requests rq
+    JOIN observations o ON o.id = rq.observation_id
+    JOIN users u ON u.id = rq.requested_by
+    WHERE 1=1
+  `;
+  const params = [];
+  let idx = 1;
+
+  if (status) {
+    sql += ` AND rq.status = $${idx}`;
+    params.push(status.toUpperCase());
+    idx++;
+  }
+
+  if (type) {
+    sql += ` AND rq.type = $${idx}`;
+    params.push(type.toUpperCase());
+    idx++;
+  }
+
+  sql += ' ORDER BY rq.created_at DESC';
+
+  const result = await db.pool.query(sql, params);
+  return result.rows;
+}
+
+async function approveRequest(requestId) {
+  const reqResult = await db.pool.query(
+    'SELECT id, observation_id, type, status FROM observation_requests WHERE id = $1',
+    [requestId]
+  );
+
+  if (reqResult.rows.length === 0) {
+    return { error: 'Request not found.', status: 404 };
+  }
+
+  const request = reqResult.rows[0];
+
+  if (request.status !== 'PENDING') {
+    return { error: 'Request is already processed.', status: 400 };
+  }
+
+  await db.pool.query('UPDATE observation_requests SET status = $1 WHERE id = $2', ['APPROVED', requestId]);
+
+  if (request.type === 'DELETE') {
+    await db.pool.query('UPDATE observations SET is_public = false WHERE id = $1', [request.observation_id]);
+  }
+
+  return { message: 'Request approved.' };
+}
+
+async function rejectRequest(requestId) {
+  const reqResult = await db.pool.query(
+    'SELECT id, status FROM observation_requests WHERE id = $1',
+    [requestId]
+  );
+
+  if (reqResult.rows.length === 0) {
+    return { error: 'Request not found.', status: 404 };
+  }
+
+  if (reqResult.rows[0].status !== 'PENDING') {
+    return { error: 'Request is already processed.', status: 400 };
+  }
+
+  await db.pool.query('UPDATE observation_requests SET status = $1 WHERE id = $2', ['REJECTED', requestId]);
+
+  return { message: 'Request rejected.' };
+}
+
+module.exports = { getDashboard, getUsers, updateUserRole, toggleUserStatus, getObservations, getRequests, approveRequest, rejectRequest };
