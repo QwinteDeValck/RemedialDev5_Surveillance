@@ -1,0 +1,27 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Administration — Neighborhood Surveillance</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+  <nav class="navbar">
+    <a href="/" class="navbar-brand">Neighborhood Surveillance</a>
+    <div class="navbar-links" id="navLinks"></div>
+  </nav>
+
+  <div class="container">
+    <h2 style="margin-bottom:2rem">Administration Dashboard</h2>
+    <div id="loading" style="text-align:center;padding:3rem;color:#666">Loading...</div>
+    <div id="dashboardContent" style="display:none">
+      <div class="features" id="dashboardCards"></div>
+      <div id="error" style="display:none;text-align:center;padding:2rem;color:#D32F2F"></div>
+    </div>
+  </div>
+
+  <script src="/js/app.js"></script>
+  <script src="/js/admin.js"></script>
+</body>
+</html>
