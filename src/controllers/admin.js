@@ -174,8 +174,12 @@ async function getObservations({ search, category, status }) {
 
 async function getRequests({ status, type }) {
   let sql = `
-    SELECT rq.id, rq.observation_id, rq.requested_by, rq.type, rq.reason, rq.status AS req_status, rq.created_at,
-           o.title AS observation_title, u.username AS requester_username
+    SELECT rq.id, rq.observation_id, rq.requested_by, rq.type, rq.reason,
+           rq.proposed_title, rq.proposed_category, rq.proposed_description, rq.proposed_address,
+           rq.status AS req_status, rq.created_at,
+           o.title AS observation_title, o.category AS observation_category,
+           o.description AS observation_description, o.address AS observation_address,
+           u.username AS requester_username
     FROM observation_requests rq
     JOIN observations o ON o.id = rq.observation_id
     JOIN users u ON u.id = rq.requested_by
@@ -204,7 +208,7 @@ async function getRequests({ status, type }) {
 
 async function approveRequest(requestId) {
   const reqResult = await db.pool.query(
-    'SELECT id, observation_id, type, status FROM observation_requests WHERE id = $1',
+    'SELECT id, observation_id, type, status, proposed_title, proposed_category, proposed_description, proposed_address FROM observation_requests WHERE id = $1',
     [requestId]
   );
 
@@ -222,6 +226,23 @@ async function approveRequest(requestId) {
 
   if (request.type === 'DELETE') {
     await db.pool.query('UPDATE observations SET is_public = false WHERE id = $1', [request.observation_id]);
+  } else if (request.type === 'EDIT') {
+    const updates = [];
+    const params = [];
+    let idx = 1;
+
+    if (request.proposed_title) { updates.push(`title = $${idx++}`); params.push(request.proposed_title); }
+    if (request.proposed_category) { updates.push(`category = $${idx++}`); params.push(request.proposed_category); }
+    if (request.proposed_description !== null) { updates.push(`description = $${idx++}`); params.push(request.proposed_description); }
+    if (request.proposed_address) { updates.push(`address = $${idx++}`); params.push(request.proposed_address); }
+
+    if (updates.length > 0) {
+      params.push(request.observation_id);
+      await db.pool.query(
+        `UPDATE observations SET ${updates.join(', ')} WHERE id = $${idx}`,
+        params
+      );
+    }
   }
 
   return { message: 'Request approved.' };
@@ -229,7 +250,7 @@ async function approveRequest(requestId) {
 
 async function rejectRequest(requestId) {
   const reqResult = await db.pool.query(
-    'SELECT id, status FROM observation_requests WHERE id = $1',
+    'SELECT id, observation_id, status FROM observation_requests WHERE id = $1',
     [requestId]
   );
 

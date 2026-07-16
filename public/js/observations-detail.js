@@ -1,4 +1,16 @@
 let currentObservationId = null;
+let currentObservation = null;
+
+function toggleRequestFields() {
+  const type = document.getElementById('requestType').value;
+  document.getElementById('proposedFields').style.display = type === 'EDIT' ? 'block' : 'none';
+}
+
+function showRequestForm() {
+  document.getElementById('proposedCategory').value = currentObservation?.category || '';
+  toggleRequestFields();
+  document.getElementById('requestForm').style.display = 'block';
+}
 
 document.addEventListener('DOMContentLoaded', async () => {
   if (!isLoggedIn()) {
@@ -18,7 +30,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   const feedback = document.getElementById('feedback');
   const loading = document.getElementById('loading');
   const card = document.getElementById('detailCard');
-  const requestForm = document.getElementById('requestForm');
+  const requestSection = document.getElementById('requestSection');
 
   try {
     const [obsRes, reqRes] = await Promise.all([
@@ -39,6 +51,7 @@ document.addEventListener('DOMContentLoaded', async () => {
     }
 
     const obs = await obsRes.json();
+    currentObservation = obs;
     const requests = await reqRes.json();
     const hasPendingRequest = requests.some(r => r.status === 'PENDING');
 
@@ -67,12 +80,17 @@ document.addEventListener('DOMContentLoaded', async () => {
       `;
     } else {
       if (hasPendingRequest) {
-        requestForm.innerHTML = '<p style="color:#666;font-style:italic">A change request has already been submitted for this observation.</p>';
+        requestSection.innerHTML = '<p style="color:#666;font-style:italic;margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid #eee">A change request has already been submitted for this observation.</p>';
       }
-      requestForm.style.display = 'block';
+      requestSection.style.display = 'block';
       actions.innerHTML = `
+        <button onclick="showRequestForm()" class="btn btn-cta">Request Change</button>
         <a href="/observations/" class="btn" style="background:#eee;color:#1E1E1E">Back to overview</a>
       `;
+
+      if (params.get('request') === '1' && !hasPendingRequest) {
+        showRequestForm();
+      }
     }
   } catch {
     loading.style.display = 'none';
@@ -109,6 +127,26 @@ async function submitRequest() {
   const btn = document.getElementById('submitRequestBtn');
   const feedback = document.getElementById('feedback');
 
+  const body = { type, reason: reason || undefined };
+
+  if (type === 'EDIT') {
+    const title = document.getElementById('proposedTitle').value.trim();
+    const category = document.getElementById('proposedCategory').value;
+    const description = document.getElementById('proposedDescription').value.trim();
+    const address = document.getElementById('proposedAddress').value.trim();
+
+    if (!title && !category && !description && !address) {
+      feedback.className = 'feedback error';
+      feedback.textContent = 'Please fill in at least one proposed field.';
+      return;
+    }
+
+    if (title) body.proposed_title = title;
+    if (category) body.proposed_category = category;
+    if (description) body.proposed_description = description;
+    if (address) body.proposed_address = address;
+  }
+
   feedback.className = 'feedback';
   feedback.textContent = '';
   btn.disabled = true;
@@ -121,7 +159,7 @@ async function submitRequest() {
         'Content-Type': 'application/json',
         Authorization: `Bearer ${getToken()}`,
       },
-      body: JSON.stringify({ type, reason: reason || undefined }),
+      body: JSON.stringify(body),
     });
 
     const data = await res.json();
@@ -129,8 +167,8 @@ async function submitRequest() {
     if (res.ok) {
       feedback.className = 'feedback success';
       feedback.textContent = 'Request submitted!';
-      const form = document.getElementById('requestForm');
-      form.innerHTML = '<p style="color:#666;font-style:italic">A change request has already been submitted for this observation.</p>';
+      const section = document.getElementById('requestSection');
+      section.innerHTML = '<p style="color:#666;font-style:italic">A change request has already been submitted for this observation.</p>';
     } else {
       feedback.className = 'feedback error';
       feedback.textContent = data.error || 'Failed to submit request.';

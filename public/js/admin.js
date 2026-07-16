@@ -288,21 +288,34 @@ document.addEventListener('DOMContentLoaded', async () => {
       if (!res.ok) throw new Error('Failed to load requests');
 
       const requests = await res.json();
+      pendingRequestsData = requests;
 
       reqBody.innerHTML = requests.map(req => {
         const isPending = req.req_status === 'PENDING';
+        const changes = [];
+        if (req.proposed_title) changes.push(`Title: "${req.proposed_title}"`);
+        if (req.proposed_category) changes.push(`Category: "${req.proposed_category}"`);
+        if (req.proposed_description) changes.push(`Description: "${req.proposed_description}"`);
+        if (req.proposed_address) changes.push(`Address: "${req.proposed_address}"`);
+        const proposedHtml = changes.length > 0
+          ? `<div style="font-size:0.75rem;line-height:1.4;color:#1976D2">${changes.join('<br>')}</div>`
+          : '<span style="color:#999">—</span>';
+        const reviewBtn = isPending && req.type === 'EDIT'
+          ? `<button class="action-btn" style="background:#E3F2FD;color:#1976D2;margin:0.25rem 0.5rem 0.25rem 0" onclick="openReviewModal('${req.id}')">Review</button>`
+          : '';
         return `
           <tr>
             <td><span class="cell-truncate">${req.observation_title}</span></td>
             <td><span class="badge ${req.type === 'EDIT' ? 'badge-role' : 'badge-deleted'}">${req.type}</span></td>
             <td>${req.requester_username}</td>
-            <td style="color:#666;max-width:180px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${req.reason || '—'}</td>
+            <td style="max-width:220px">${proposedHtml}</td>
             <td><span class="badge badge-${req.req_status === 'PENDING' ? 'pending' : req.req_status === 'APPROVED' ? 'approved' : 'rejected'}">${req.req_status}</span></td>
             <td style="color:#999;font-size:0.8rem">${new Date(req.created_at).toLocaleDateString()}</td>
             <td>
               ${isPending ? `
-                <button class="action-btn" style="background:#E8F5E9;color:#388E3C;margin-right:0.25rem" onclick="handleApprove('${req.id}')">Approve</button>
-                <button class="action-btn" style="background:#FFEBEE;color:#D32F2F" onclick="handleReject('${req.id}')">Reject</button>
+                ${reviewBtn}
+                <button class="action-btn" style="background:#E8F5E9;color:#388E3C;margin:0.25rem 0.5rem 0.25rem 0" onclick="handleApprove('${req.id}')">Approve</button>
+                <button class="action-btn" style="background:#FFEBEE;color:#D32F2F;margin:0.25rem 0" onclick="handleReject('${req.id}')">Reject</button>
               ` : '<span style="color:#999;font-size:0.8rem">—</span>'}
             </td>
           </tr>
@@ -317,6 +330,8 @@ document.addEventListener('DOMContentLoaded', async () => {
       reqError.textContent = 'Failed to load requests.';
     }
   }
+
+  let pendingRequestsData = [];
 
   reqStatus.addEventListener('change', loadRequests);
   reqType.addEventListener('change', loadRequests);
@@ -352,5 +367,75 @@ document.addEventListener('DOMContentLoaded', async () => {
     } catch {
       alert('Could not connect to server.');
     }
+  };
+
+  window.openReviewModal = (requestId) => {
+    const req = pendingRequestsData.find(r => r.id === requestId);
+    if (!req) return;
+
+    const body = document.getElementById('reviewBody');
+    const actions = document.getElementById('reviewActions');
+
+    if (req.type === 'EDIT') {
+      const fields = [
+        { label: 'Title', original: req.observation_title, proposed: req.proposed_title },
+        { label: 'Category', original: req.observation_category, proposed: req.proposed_category },
+        { label: 'Description', original: req.observation_description || '-', proposed: req.proposed_description || '-' },
+        { label: 'Address', original: req.observation_address, proposed: req.proposed_address },
+      ];
+
+      const hasChanges = fields.some(f => f.proposed && f.proposed !== '-');
+      const rows = fields.map(f => {
+        const changed = f.proposed && f.proposed !== '-' && f.proposed !== f.original;
+        return `
+          <tr>
+            <th>${f.label}</th>
+            <td class="${changed ? 'diff-removed' : ''}"><span class="compare-original">${f.original || '-'}</span></td>
+            <td class="compare-arrow">&rarr;</td>
+            <td class="${changed ? 'diff-added' : ''}">${changed ? `<span class="compare-proposed">${f.proposed}</span>` : `<span class="compare-original">${f.proposed || '-'}</span>`}</td>
+          </tr>
+        `;
+      }).join('');
+
+      body.innerHTML = `
+        <p style="color:#666;margin-bottom:1rem;font-size:0.9rem">
+          <strong>Observation:</strong> ${req.observation_title} &middot;
+          <strong>Requester:</strong> ${req.requester_username} &middot;
+          <strong>Reason:</strong> ${req.reason || 'No reason provided'}
+        </p>
+        ${hasChanges ? `
+          <table class="compare-table">
+            <thead>
+              <tr><th></th><th style="color:#666">Original</th><th></th><th style="color:#1976D2">Proposed</th></tr>
+            </thead>
+            <tbody>${rows}</tbody>
+          </table>
+        ` : '<p style="color:#F57C00;font-style:italic">No changes proposed.</p>'}
+      `;
+
+      actions.innerHTML = `
+        <button class="btn" onclick="closeReviewModal()">Cancel</button>
+        <button class="btn" style="background:#E8F5E9;color:#388E3C;font-weight:600" onclick="handleApprove('${req.id}'); closeReviewModal();">Approve Changes</button>
+        <button class="btn" style="background:#FFEBEE;color:#D32F2F" onclick="handleReject('${req.id}'); closeReviewModal();">Reject</button>
+      `;
+    } else if (req.type === 'DELETE') {
+      body.innerHTML = `
+        <p><strong>Reason:</strong> ${req.reason || 'No reason provided'}</p>
+        <p><strong>Observation:</strong> ${req.observation_title}</p>
+        <p><strong>Requester:</strong> ${req.requester_username}</p>
+        <p style="color:#D32F2F;font-weight:600;margin-top:1rem">Approval will archive this observation (set to private).</p>
+      `;
+      actions.innerHTML = `
+        <button class="btn" onclick="closeReviewModal()">Cancel</button>
+        <button class="btn" style="background:#D32F2F;color:#fff" onclick="handleApprove('${req.id}'); closeReviewModal();">Approve Removal</button>
+        <button class="action-btn" style="background:#FFEBEE;color:#D32F2F" onclick="handleReject('${req.id}'); closeReviewModal();">Reject</button>
+      `;
+    }
+
+    document.getElementById('reviewModal').style.display = 'flex';
+  };
+
+  window.closeReviewModal = () => {
+    document.getElementById('reviewModal').style.display = 'none';
   };
 });

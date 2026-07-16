@@ -36,18 +36,46 @@
 
       <div id="detailActions" style="display:flex;gap:0.75rem;flex-wrap:wrap;border-top:1px solid #eee;padding-top:1.5rem"></div>
 
-      <div id="requestForm" style="display:none;margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid #eee">
-        <h3 style="margin-bottom:1.25rem">Request Change</h3>
-        <div class="form-group" style="margin-bottom:1.25rem">
-          <select id="requestType" style="width:100%;padding:0.625rem 0.75rem;border:1px solid #D0D0D0;border-radius:4px;font-size:0.9rem;font-family:inherit">
-            <option value="EDIT">Edit</option>
-            <option value="DELETE">Delete</option>
-          </select>
+      <div id="requestSection" style="display:none;margin-top:1.5rem;padding-top:1.5rem;border-top:1px solid #eee">
+        <div id="requestForm" style="display:none">
+          <h3 style="margin-bottom:1.25rem">Request Change</h3>
+          <div class="form-group" style="margin-bottom:1.25rem">
+            <select id="requestType" onchange="toggleRequestFields()" style="width:100%;padding:0.625rem 0.75rem;border:1px solid #D0D0D0;border-radius:4px;font-size:0.9rem;font-family:inherit">
+              <option value="EDIT">Edit</option>
+              <option value="DELETE">Delete</option>
+            </select>
+          </div>
+          <div id="proposedFields" style="display:none">
+            <div class="form-group" style="margin-bottom:1rem">
+              <label style="display:block;font-size:0.8rem;font-weight:600;color:#666;margin-bottom:0.25rem">Proposed Title</label>
+              <input id="proposedTitle" type="text" style="width:100%;padding:0.5rem 0.75rem;border:1px solid #D0D0D0;border-radius:4px;font-size:0.9rem;font-family:inherit" placeholder="New title...">
+            </div>
+            <div class="form-group" style="margin-bottom:1rem">
+              <label style="display:block;font-size:0.8rem;font-weight:600;color:#666;margin-bottom:0.25rem">Proposed Category</label>
+              <select id="proposedCategory" style="width:100%;padding:0.5rem 0.75rem;border:1px solid #D0D0D0;border-radius:4px;font-size:0.9rem;font-family:inherit;background:#fff">
+                <option value="">— Select a category —</option>
+                <option value="suspicious">Suspicious</option>
+                <option value="vehicle">Vehicle</option>
+                <option value="noise">Noise</option>
+                <option value="property">Property damage</option>
+                <option value="person">Person</option>
+                <option value="other">Other</option>
+              </select>
+            </div>
+            <div class="form-group" style="margin-bottom:1rem">
+              <label style="display:block;font-size:0.8rem;font-weight:600;color:#666;margin-bottom:0.25rem">Proposed Description</label>
+              <textarea id="proposedDescription" rows="2" style="width:100%;padding:0.5rem 0.75rem;border:1px solid #D0D0D0;border-radius:4px;font-size:0.9rem;font-family:inherit;resize:vertical" placeholder="New description..."></textarea>
+            </div>
+            <div class="form-group" style="margin-bottom:1rem">
+              <label style="display:block;font-size:0.8rem;font-weight:600;color:#666;margin-bottom:0.25rem">Proposed Address</label>
+              <input id="proposedAddress" type="text" style="width:100%;padding:0.5rem 0.75rem;border:1px solid #D0D0D0;border-radius:4px;font-size:0.9rem;font-family:inherit" placeholder="New address...">
+            </div>
+          </div>
+          <div class="form-group" style="margin-bottom:1.25rem">
+            <textarea id="requestReason" rows="3" style="width:100%;padding:0.625rem 0.75rem;border:1px solid #D0D0D0;border-radius:4px;font-size:0.9rem;font-family:inherit;resize:vertical" placeholder="Reason for request..."></textarea>
+          </div>
+          <button id="submitRequestBtn" class="btn btn-cta" onclick="submitRequest()" style="margin-top:0.5rem">Submit Request</button>
         </div>
-        <div class="form-group" style="margin-bottom:1.25rem">
-          <textarea id="requestReason" rows="3" style="width:100%;padding:0.625rem 0.75rem;border:1px solid #D0D0D0;border-radius:4px;font-size:0.9rem;font-family:inherit;resize:vertical" placeholder="Reason for request..."></textarea>
-        </div>
-        <button id="submitRequestBtn" class="btn btn-cta" onclick="submitRequest()" style="margin-top:0.5rem">Submit Request</button>
       </div>
     </div>
 
