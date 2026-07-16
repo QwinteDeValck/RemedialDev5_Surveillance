@@ -1,16 +1,24 @@
 const jwt = require('jsonwebtoken');
+const db = require('../db');
 
 const secret = process.env.JWT_SECRET || 'dev-secret-do-not-use-in-production';
 
+const ROLE_LEVELS = { USER: 1, MODERATOR: 2, ADMIN: 3, OWNER: 4 };
+
+async function getRoleName(roleId) {
+  const result = await db.pool.query('SELECT name FROM roles WHERE id = $1', [roleId]);
+  return result.rows[0]?.name || 'USER';
+}
+
 function signToken(user) {
   return jwt.sign(
-    { id: user.id, username: user.username, role_id: user.role_id },
+    { id: user.id, username: user.username, role_id: user.role_id, role_name: user.role_name },
     secret,
     { expiresIn: '24h' }
   );
 }
 
-function authenticate(req, res, next) {
+async function authenticate(req, res, next) {
   const header = req.headers.authorization;
   if (!header || !header.startsWith('Bearer ')) {
     return res.status(401).json({ error: 'Authentication required.' });
@@ -25,4 +33,14 @@ function authenticate(req, res, next) {
   }
 }
 
-module.exports = { signToken, authenticate };
+function authorize(minRoleName) {
+  return async (req, res, next) => {
+    const roleName = req.user.role_name || (await getRoleName(req.user.role_id));
+    if (ROLE_LEVELS[roleName] < ROLE_LEVELS[minRoleName]) {
+      return res.status(403).json({ error: 'Insufficient permissions.' });
+    }
+    next();
+  };
+}
+
+module.exports = { signToken, authenticate, authorize };

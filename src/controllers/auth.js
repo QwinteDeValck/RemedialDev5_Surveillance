@@ -8,7 +8,8 @@ async function login({ email, password }) {
   }
 
   const result = await db.pool.query(
-    'SELECT id, username, email, password, role_id, deleted_at FROM users WHERE email = $1',
+    `SELECT u.id, u.username, u.email, u.password, u.role_id, u.deleted_at, r.name AS role_name
+     FROM users u JOIN roles r ON r.id = u.role_id WHERE u.email = $1`,
     [email]
   );
 
@@ -35,6 +36,7 @@ async function login({ email, password }) {
       username: user.username,
       email: user.email,
       role_id: user.role_id,
+      role_name: user.role_name,
     },
   };
 }
