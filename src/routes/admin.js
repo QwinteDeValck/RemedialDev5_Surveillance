@@ -42,7 +42,7 @@ router.put('/users/:id/role', authenticate, authorize('ADMIN'), async (req, res)
   }
 });
 
-router.put('/users/:id/status', authenticate, authorize('MODERATOR'), async (req, res) => {
+router.put('/users/:id/status', authenticate, authorize('ADMIN'), async (req, res) => {
   try {
     const { action } = req.body;
     if (!action || !['activate', 'deactivate'].includes(action)) {
