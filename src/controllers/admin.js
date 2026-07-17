@@ -288,7 +288,7 @@ async function rejectRequest(requestId, moderatorId) {
     entityType: 'observation_request',
     entityId: requestId,
     performedBy: moderatorId,
-    details: { observation_id: request.observation_id },
+    details: { observation_id: reqResult.rows[0].observation_id },
   });
 
   return { message: 'Request rejected.' };
