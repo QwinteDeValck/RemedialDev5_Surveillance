@@ -1,5 +1,5 @@
 const db = require('../db');
-const { CREATE_ROLES_TABLE, CREATE_USERS_TABLE, SEED_ROLES, SEED_OWNER, CREATE_OBSERVATIONS_TABLE, CREATE_OBSERVATION_REQUESTS_TABLE, ADD_PREFERENCES_COLUMNS, ADD_DELETED_AT_COLUMN, ADD_PROPOSED_COLUMNS } = require('./init');
+const { CREATE_ROLES_TABLE, CREATE_USERS_TABLE, SEED_ROLES, SEED_OWNER, CREATE_OBSERVATIONS_TABLE, CREATE_OBSERVATION_REQUESTS_TABLE, ADD_PREFERENCES_COLUMNS, ADD_DELETED_AT_COLUMN, ADD_PROPOSED_COLUMNS, CREATE_AUDIT_LOG_TABLE, CREATE_AUDIT_LOG_INDEX } = require('./init');
 
 async function init() {
   const client = await db.pool.connect();
@@ -13,6 +13,8 @@ async function init() {
     await client.query(ADD_PREFERENCES_COLUMNS);
     await client.query(ADD_DELETED_AT_COLUMN);
     await client.query(ADD_PROPOSED_COLUMNS);
+    await client.query(CREATE_AUDIT_LOG_TABLE);
+    await client.query(CREATE_AUDIT_LOG_INDEX);
     console.log('Database structure initialized');
   } finally {
     client.release();

@@ -438,4 +438,96 @@ document.addEventListener('DOMContentLoaded', async () => {
   window.closeReviewModal = () => {
     document.getElementById('reviewModal').style.display = 'none';
   };
+
+  // ----- Audit Log -----
+  const isAdmin = currentRoleLevel >= ROLE_LEVELS.ADMIN;
+  const tabAdmin = document.getElementById('tabAdministration');
+  if (isAdmin) {
+    tabAdmin.style.display = 'inline-block';
+  }
+
+  let auditScope = 'observations';
+
+  window.switchAuditTab = (scope) => {
+    auditScope = scope;
+    document.querySelectorAll('.audit-tab').forEach(t => t.classList.remove('audit-tab-active'));
+    document.getElementById(scope === 'observations' ? 'tabObservations' : 'tabAdministration').classList.add('audit-tab-active');
+    loadAuditLog();
+  };
+
+  const auditBody = document.getElementById('auditBody');
+  const auditLoading = document.getElementById('auditLoading');
+  const auditContent = document.getElementById('auditContent');
+  const auditError = document.getElementById('auditError');
+  const auditAction = document.getElementById('auditAction');
+  const auditUser = document.getElementById('auditUser');
+
+  let auditDebounce;
+
+  async function loadAuditLog() {
+    const params = new URLSearchParams();
+    params.set('scope', auditScope);
+    if (auditAction.value) params.set('action', auditAction.value);
+    if (auditUser.value.trim()) params.set('user_id', auditUser.value.trim());
+
+    auditLoading.style.display = 'block';
+    auditContent.style.display = 'none';
+    auditError.style.display = 'none';
+
+    try {
+      const res = await fetch(`/api/admin/audit?${params.toString()}`, {
+        headers: { Authorization: `Bearer ${getToken()}` },
+      });
+
+      if (!res.ok) throw new Error('Failed to load audit log');
+
+      const data = await res.json();
+
+      const actionLabels = {
+        REQUEST_APPROVE: 'Request Approved',
+        REQUEST_REJECT: 'Request Rejected',
+        ROLE_PROMOTION: 'Role Promoted',
+        ROLE_DEMOTION: 'Role Demoted',
+        USER_ACTIVATE: 'User Activated',
+        USER_DEACTIVATE: 'User Deactivated',
+      };
+
+      auditBody.innerHTML = data.entries.map(entry => {
+        const details = entry.details || {};
+        let detailText = '';
+        if (entry.action === 'REQUEST_APPROVE' || entry.action === 'REQUEST_REJECT') {
+          detailText = `${details.request_type || ''} — ${details.observation_id ? 'Obs: ' + details.observation_id.substring(0, 8) + '...' : ''}`;
+        } else if (entry.action === 'ROLE_PROMOTION' || entry.action === 'ROLE_DEMOTION') {
+          detailText = `${details.old_role} → ${details.new_role}`;
+        }
+        const actionClass = entry.action.includes('APPROVE') || entry.action.includes('ACTIVATE') || entry.action === 'ROLE_PROMOTION'
+          ? 'badge badge-approved' : entry.action.includes('REJECT') || entry.action.includes('DEACTIVATE') || entry.action === 'ROLE_DEMOTION'
+          ? 'badge badge-rejected' : 'badge badge-role';
+        return `
+          <tr>
+            <td><span class="${actionClass}">${actionLabels[entry.action] || entry.action}</span></td>
+            <td style="color:#666;font-size:0.8rem">${entry.entity_type || '-'}<br>${entry.entity_id ? entry.entity_id.substring(0, 8) + '...' : ''}</td>
+            <td style="color:#666;font-size:0.8rem">${detailText || '-'}</td>
+            <td>${entry.performed_by_username}</td>
+            <td style="color:#999;font-size:0.8rem">${new Date(entry.created_at).toLocaleString()}</td>
+          </tr>
+        `;
+      }).join('');
+
+      auditLoading.style.display = 'none';
+      auditContent.style.display = 'block';
+    } catch {
+      auditLoading.style.display = 'none';
+      auditError.style.display = 'block';
+      auditError.textContent = 'Failed to load audit log.';
+    }
+  }
+
+  auditAction.addEventListener('change', loadAuditLog);
+  auditUser.addEventListener('input', () => {
+    clearTimeout(auditDebounce);
+    auditDebounce = setTimeout(loadAuditLog, 300);
+  });
+
+  loadAuditLog();
 });

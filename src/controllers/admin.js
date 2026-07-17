@@ -1,4 +1,5 @@
 const db = require('../db');
+const { logAction } = require('./audit');
 
 async function getDashboard() {
   const stats = await db.pool.query(`
@@ -95,6 +96,14 @@ async function updateUserRole(userId, newRoleName, requesterId) {
 
   await db.pool.query('UPDATE users SET role_id = $1 WHERE id = $2', [roleResult.rows[0].id, userId]);
 
+  await logAction({
+    action: targetUser.role_name === 'USER' ? 'ROLE_PROMOTION' : 'ROLE_DEMOTION',
+    entityType: 'user',
+    entityId: userId,
+    performedBy: requesterId,
+    details: { old_role: targetUser.role_name, new_role: roleResult.rows[0].name },
+  });
+
   return { message: `User role updated to ${roleResult.rows[0].name}.` };
 }
 
@@ -123,6 +132,7 @@ async function toggleUserStatus(userId, action, requesterId) {
       return { error: 'User is already deactivated.', status: 400 };
     }
     await db.pool.query('UPDATE users SET deleted_at = NOW() WHERE id = $1', [userId]);
+    await logAction({ action: 'USER_DEACTIVATE', entityType: 'user', entityId: userId, performedBy: requesterId });
     return { message: 'User deactivated.' };
   }
 
@@ -131,6 +141,7 @@ async function toggleUserStatus(userId, action, requesterId) {
       return { error: 'User is already active.', status: 400 };
     }
     await db.pool.query('UPDATE users SET deleted_at = NULL WHERE id = $1', [userId]);
+    await logAction({ action: 'USER_ACTIVATE', entityType: 'user', entityId: userId, performedBy: requesterId });
     return { message: 'User activated.' };
   }
 
@@ -206,7 +217,7 @@ async function getRequests({ status, type }) {
   return result.rows;
 }
 
-async function approveRequest(requestId) {
+async function approveRequest(requestId, moderatorId) {
   const reqResult = await db.pool.query(
     'SELECT id, observation_id, type, status, proposed_title, proposed_category, proposed_description, proposed_address FROM observation_requests WHERE id = $1',
     [requestId]
@@ -223,6 +234,14 @@ async function approveRequest(requestId) {
   }
 
   await db.pool.query('UPDATE observation_requests SET status = $1 WHERE id = $2', ['APPROVED', requestId]);
+
+  await logAction({
+    action: 'REQUEST_APPROVE',
+    entityType: 'observation_request',
+    entityId: requestId,
+    performedBy: moderatorId,
+    details: { request_type: request.type, observation_id: request.observation_id },
+  });
 
   if (request.type === 'DELETE') {
     await db.pool.query('UPDATE observations SET is_public = false WHERE id = $1', [request.observation_id]);
@@ -248,7 +267,7 @@ async function approveRequest(requestId) {
   return { message: 'Request approved.' };
 }
 
-async function rejectRequest(requestId) {
+async function rejectRequest(requestId, moderatorId) {
   const reqResult = await db.pool.query(
     'SELECT id, observation_id, status FROM observation_requests WHERE id = $1',
     [requestId]
@@ -263,6 +282,14 @@ async function rejectRequest(requestId) {
   }
 
   await db.pool.query('UPDATE observation_requests SET status = $1 WHERE id = $2', ['REJECTED', requestId]);
+
+  await logAction({
+    action: 'REQUEST_REJECT',
+    entityType: 'observation_request',
+    entityId: requestId,
+    performedBy: moderatorId,
+    details: { observation_id: request.observation_id },
+  });
 
   return { message: 'Request rejected.' };
 }

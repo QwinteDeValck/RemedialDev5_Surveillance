@@ -2,6 +2,7 @@ const { Router } = require('express');
 const router = Router();
 const { authenticate, authorize } = require('../middleware/auth');
 const { getDashboard, getUsers, updateUserRole, toggleUserStatus, getObservations, getRequests, approveRequest, rejectRequest } = require('../controllers/admin');
+const { getAuditLog } = require('../controllers/audit');
 
 router.get('/dashboard', authenticate, authorize('MODERATOR'), async (req, res) => {
   try {
@@ -82,7 +83,7 @@ router.get('/requests', authenticate, authorize('MODERATOR'), async (req, res) =
 
 router.put('/requests/:id/approve', authenticate, authorize('MODERATOR'), async (req, res) => {
   try {
-    const result = await approveRequest(req.params.id);
+    const result = await approveRequest(req.params.id, req.user.id);
     if (result.error) {
       return res.status(result.status || 400).json({ error: result.error });
     }
@@ -95,7 +96,7 @@ router.put('/requests/:id/approve', authenticate, authorize('MODERATOR'), async 
 
 router.put('/requests/:id/reject', authenticate, authorize('MODERATOR'), async (req, res) => {
   try {
-    const result = await rejectRequest(req.params.id);
+    const result = await rejectRequest(req.params.id, req.user.id);
     if (result.error) {
       return res.status(result.status || 400).json({ error: result.error });
     }
@@ -103,6 +104,47 @@ router.put('/requests/:id/reject', authenticate, authorize('MODERATOR'), async (
   } catch (err) {
     console.error('Admin reject request error:', err);
     res.status(500).json({ error: 'Failed to reject request.' });
+  }
+});
+
+router.get('/audit', authenticate, async (req, res) => {
+  try {
+    const { scope = 'observations', action, entity_type, user_id, limit, offset } = req.query;
+    const roleName = req.user.role_name;
+    const isAdmin = roleName === 'ADMIN' || roleName === 'OWNER';
+
+    if (scope === 'administration' && !isAdmin) {
+      return res.status(403).json({ error: 'Admin access required.' });
+    }
+
+    if (scope === 'observations' && !isAdmin && roleName !== 'MODERATOR') {
+      return res.status(403).json({ error: 'Insufficient permissions.' });
+    }
+
+    const observationActions = ['REQUEST_APPROVE', 'REQUEST_REJECT'];
+    const adminActions = ['ROLE_PROMOTION', 'ROLE_DEMOTION', 'USER_ACTIVATE', 'USER_DEACTIVATE'];
+
+    let effectiveAction = action;
+    if (!action) {
+      if (scope === 'observations') {
+        effectiveAction = observationActions;
+      } else if (scope === 'administration') {
+        effectiveAction = [...observationActions, ...adminActions];
+      }
+    }
+
+    const data = await getAuditLog({
+      action: effectiveAction,
+      entityType: entity_type || null,
+      userId: user_id || null,
+      limit: parseInt(limit) || 50,
+      offset: parseInt(offset) || 0,
+    });
+
+    res.json(data);
+  } catch (err) {
+    console.error('Admin audit log error:', err);
+    res.status(500).json({ error: 'Failed to load audit log.' });
   }
 });
 
