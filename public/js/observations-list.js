@@ -115,5 +115,5 @@ async function deleteObservation(id) {
 }
 
 function showRequestForm(id) {
-  window.location.href = `/observations/detail.html?id=${id}`;
+  window.location.href = `/observations/detail.html?id=${id}&request=1`;
 }

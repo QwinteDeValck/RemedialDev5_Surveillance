@@ -17,6 +17,8 @@ function logout() {
   window.location.href = '/auth/login.html';
 }
 
+const ROLE_LEVELS = { USER: 1, MODERATOR: 2, ADMIN: 3, OWNER: 4 };
+
 function updateNavbar() {
   const navLinks = document.getElementById('navLinks');
   if (!navLinks) return;
@@ -26,10 +28,13 @@ function updateNavbar() {
     const initial = user.username.charAt(0).toUpperCase();
     const colors = ['#D32F2F', '#1976D2', '#388E3C', '#F57C00', '#7B1FA2', '#00796B', '#5D4037', '#C2185B'];
     const color = colors[initial.charCodeAt(0) % colors.length];
+    const roleLevel = ROLE_LEVELS[user.role_name] || 0;
+    const showAdmin = roleLevel >= ROLE_LEVELS.MODERATOR;
 
     navLinks.innerHTML = `
       <a href="/map/" class="nav-link">Map</a>
       <a href="/observations/" class="nav-link">Observations</a>
+      ${showAdmin ? '<a href="/admin/" class="nav-link">Administration</a>' : ''}
       <div class="nav-dropdown" id="navDropdown">
         <button class="nav-dropdown-trigger" id="dropdownTrigger">
           <span class="nav-avatar" style="background:${color}">${initial}</span>

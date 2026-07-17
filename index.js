@@ -6,6 +6,7 @@ const authRouter = require('./src/routes/auth');
 const observationsRouter = require('./src/routes/observations');
 const requestsRouter = require('./src/routes/requests');
 const profileRouter = require('./src/routes/profile');
+const adminRouter = require('./src/routes/admin');
 
 const app = express();
 const port = process.env.PORT || 80;
@@ -29,6 +30,7 @@ app.use('/api/auth', authRouter);
 app.use('/api/observations', observationsRouter);
 app.use('/api/observations', requestsRouter);
 app.use('/api/profile', profileRouter);
+app.use('/api/admin', adminRouter);
 
 async function start() {
   try {
